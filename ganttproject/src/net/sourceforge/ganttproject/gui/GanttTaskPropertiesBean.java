@@ -80,6 +80,8 @@ import org.jdesktop.swing.JXDatePicker;
  */
 public class GanttTaskPropertiesBean extends JPanel {
 
+    private static final JColorChooser colorChooser = new JColorChooser();
+
     private JXDatePicker myStartDatePicker;
     private JXDatePicker myEndDatePicker;
     private JXDatePicker myThirdDatePicker;
@@ -184,7 +186,7 @@ public class GanttTaskPropertiesBean extends JPanel {
 
     private int taskCompletionPercentage;
 
-    private int taskPriority;
+    private Task.Priority taskPriority;
 
     private ShapePaint taskShape;
 
@@ -299,9 +301,9 @@ public class GanttTaskPropertiesBean extends JPanel {
         priorityLabel1 = new JLabel(language.getText("priority"));
         secondRowPanel1.add(priorityLabel1);
         priorityComboBox = new JComboBox();
-        priorityComboBox.addItem(language.getText("low"));
-        priorityComboBox.addItem(language.getText("normal"));
-        priorityComboBox.addItem(language.getText("hight"));
+        for (Task.Priority p: Task.Priority.values()) {
+            priorityComboBox.addItem(language.getText(p.getI18nKey()));
+        }
         priorityComboBox.setEditable(false);
 
         secondRowPanel1.add(priorityComboBox);
@@ -327,9 +329,6 @@ public class GanttTaskPropertiesBean extends JPanel {
                 }
             }
         });
-
-        ImageIcon icon = new ImageIcon(getClass().getResource(
-                "/icons/calendar_16.gif"));
 
         thirdRowPanel1 = new JPanel(flowL);
         thirdRowPanel1.setBorder(new TitledBorder(new EtchedBorder(), language
@@ -393,12 +392,10 @@ public class GanttTaskPropertiesBean extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 JDialog dialog;
                 dialog = JColorChooser.createDialog(GanttTaskPropertiesBean.this, colorChooserTitle,
-                        true, GanttDialogProperties.colorChooser,
+                        true, colorChooser,
                         new ActionListener() {
                             public void actionPerformed(ActionEvent e) {
-                                colorButton
-                                        .setBackground(GanttDialogProperties.colorChooser
-                                                .getColor());
+                                colorButton.setBackground(colorChooser.getColor());
                                 isColorChanged = true;
                             }
                         }
@@ -416,8 +413,7 @@ public class GanttTaskPropertiesBean extends JPanel {
                  * GanttDialogProperties.colorChooser.addChooserPanel(panels[0]);
                  */
 
-                GanttDialogProperties.colorChooser.setColor(colorButton
-                        .getBackground());
+                colorChooser.setColor(colorButton.getBackground());
                 dialog.setVisible(true);
             }
         });
@@ -487,6 +483,7 @@ public class GanttTaskPropertiesBean extends JPanel {
 
         gbc.gridy = 4;
         generalPanel.add(webLinkPanel, gbc);
+
     }
 
     /** Add the different action listeners on the different widgets */
@@ -727,6 +724,7 @@ public class GanttTaskPropertiesBean extends JPanel {
                     copyValues(myAllocationsPanel[0].getTableModel(),
                             myAllocationsPanel[i].getTableModel());
                 }
+
             }
             myAllocationsPanel[i].getTableModel().commit();
             returnTask[i] = selectedTasks[i];
@@ -803,6 +801,7 @@ public class GanttTaskPropertiesBean extends JPanel {
         }
 
         return returnTask;
+
     }
 
     /** as the name indicates */
@@ -825,7 +824,7 @@ public class GanttTaskPropertiesBean extends JPanel {
         percentCompleteSlider.setValue(new Integer(selectedTasks[0]
                 .getCompletionPercentage()));
 
-        priorityComboBox.setSelectedIndex(selectedTasks[0].getPriority());
+        priorityComboBox.setSelectedIndex(selectedTasks[0].getPriority().ordinal());
 
         if (selectedTasks[0].getThird() != null) {
             setThird(selectedTasks[0].getThird().Clone(), true);
@@ -949,8 +948,8 @@ public class GanttTaskPropertiesBean extends JPanel {
     }
 
     /** @return the priority level of the task */
-    public int getPriority() {
-        return priorityComboBox.getSelectedIndex();
+    public Task.Priority getPriority() {
+        return Task.Priority.getPriority(priorityComboBox.getSelectedIndex());
     }
 
 //    public void setStartFixed(boolean startFixed) {
@@ -1001,7 +1000,7 @@ public class GanttTaskPropertiesBean extends JPanel {
 
     /** Change the end date of the task */
     public void setEnd(GanttCalendar dend, boolean test) {
-        myEndDatePicker.setDate(dend.newAdd(-1).getTime());    	
+        myEndDatePicker.setDate(dend.newAdd(-1).getTime());
         this.end = dend;
         if (test == true) {
             return;
