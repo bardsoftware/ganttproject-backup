@@ -18,6 +18,7 @@ import net.sourceforge.ganttproject.GPLogger;
 import net.sourceforge.ganttproject.GanttCalendar;
 import net.sourceforge.ganttproject.GanttTask;
 import net.sourceforge.ganttproject.GanttTaskRelationship;
+import net.sourceforge.ganttproject.calendar.AlwaysWorkingTimeCalendarImpl;
 import net.sourceforge.ganttproject.calendar.CalendarFactory;
 import net.sourceforge.ganttproject.calendar.GPCalendar;
 import net.sourceforge.ganttproject.resource.HumanResource;
@@ -55,6 +56,8 @@ import net.sourceforge.ganttproject.time.TimeUnit;
  * @author bard
  */
 public class TaskManagerImpl implements TaskManager {
+    private static final GPCalendar RESTLESS_CALENDAR = new AlwaysWorkingTimeCalendarImpl();
+
     private final TaskHierarchyManagerImpl myHierarchyManager;
 
     private final TaskDependencyCollectionImpl myDependencyCollection;
@@ -74,64 +77,64 @@ public class TaskManagerImpl implements TaskManager {
 
     private TaskContainmentHierarchyFacade myTaskContainment;
 
-	private boolean areEventsEnabled = true;
+    private boolean areEventsEnabled = true;
 
     private static class TaskMap {
         private final Map myId2task = new HashMap();
-		private TaskDocumentOrderComparator myComparator;
-		private boolean isModified = true;
-		private Task[] myArray;
+        private TaskDocumentOrderComparator myComparator;
+        private boolean isModified = true;
+        private Task[] myArray;
         private final TaskManagerImpl myManager;
-    	TaskMap(TaskManagerImpl taskManager) {
-    		myComparator = new TaskDocumentOrderComparator(taskManager);
+        TaskMap(TaskManagerImpl taskManager) {
+            myComparator = new TaskDocumentOrderComparator(taskManager);
             myManager = taskManager;
-    	}
-    	void addTask(Task task) {
-    		myId2task.put(new Integer(task.getTaskID()), task);
-    		isModified = true;
-    	}
-    	Task getTask(int id) {
-    		return (Task) myId2task.get(new Integer(id));
-    	}
-		public Task[] getTasks() {
-			if (isModified) {
-				myArray = (Task[]) myId2task.values().toArray(new Task[myId2task.size()]);
-				Arrays.sort(myArray, myComparator);
-				isModified = false;
-			}
-			return myArray;
-		}
-		public void clear() {
-			myId2task.clear();
-			isModified = true;
-		}
-		public void removeTask(Task task) {
-			myId2task.remove(new Integer(task.getTaskID()));
+        }
+        void addTask(Task task) {
+            myId2task.put(new Integer(task.getTaskID()), task);
+            isModified = true;
+        }
+        Task getTask(int id) {
+            return (Task) myId2task.get(new Integer(id));
+        }
+        public Task[] getTasks() {
+            if (isModified) {
+                myArray = (Task[]) myId2task.values().toArray(new Task[myId2task.size()]);
+                Arrays.sort(myArray, myComparator);
+                isModified = false;
+            }
+            return myArray;
+        }
+        public void clear() {
+            myId2task.clear();
+            isModified = true;
+        }
+        public void removeTask(Task task) {
+            myId2task.remove(new Integer(task.getTaskID()));
             Task[] nestedTasks = myManager.getTaskHierarchy().getNestedTasks(task);
             for (int i=0; i<nestedTasks.length; i++) {
                 removeTask(nestedTasks[i]);
             }
-			isModified = true;
-		}
-		public int size() {
-			return myId2task.size();
-		}
-		public boolean isEmpty() {
-			return myId2task.isEmpty();
-		}
-		void setDirty() {
-			isModified = true;
-		}
+            isModified = true;
+        }
+        public int size() {
+            return myId2task.size();
+        }
+        public boolean isEmpty() {
+            return myId2task.isEmpty();
+        }
+        void setDirty() {
+            isModified = true;
+        }
     }
     private final TaskMap myTaskMap = new TaskMap(this);
 
-	private final CustomColumnsStorage myCustomColumnStorage;
+    private final CustomColumnsStorage myCustomColumnStorage;
 
     TaskManagerImpl(
             TaskContainmentHierarchyFacade.Factory containmentFacadeFactory,
             TaskManagerConfig config, CustomColumnsStorage columnStorage) {
-    	myCustomColumnStorage = columnStorage==null ?
-    			new CustomColumnsStorage() : columnStorage;
+        myCustomColumnStorage = columnStorage==null ?
+                new CustomColumnsStorage() : columnStorage;
         myConfig = config;
         myHierarchyManager = new TaskHierarchyManagerImpl();
         EventDispatcher dispatcher = new EventDispatcher() {
@@ -208,7 +211,7 @@ public class TaskManagerImpl implements TaskManager {
     }
 
     public Task[] getTasks() {
-    	return myTaskMap.getTasks();
+        return myTaskMap.getTasks();
         //return (Task[]) myId2task.values().toArray(new Task[myId2task.size()]);
     }
 
@@ -234,7 +237,7 @@ public class TaskManagerImpl implements TaskManager {
         fireTaskModelReset();
     }
 
-    
+
     public void projectOpened() {
         processCriticalPath(getRootTask());
         myAlgorithmCollection.getRecalculateTaskCompletionPercentageAlgorithm().run(getRootTask());
@@ -286,9 +289,9 @@ public class TaskManagerImpl implements TaskManager {
         }
     }
 
-	boolean isRegistered(TaskImpl task) {
-		return myTaskMap.getTask(task.getTaskID())!=null;
-	}
+    boolean isRegistered(TaskImpl task) {
+        return myTaskMap.getTask(task.getTaskID())!=null;
+    }
 
     public int getTaskCount() {
         return myTaskMap.size();
@@ -358,6 +361,11 @@ public class TaskManagerImpl implements TaskManager {
         return result;
     }
 
+    public Date shift(Date original, TaskLength duration) {
+        GPCalendar calendar = RESTLESS_CALENDAR;
+        return calendar.shiftDate(original, duration);
+    }
+
     public TaskDependencyCollection getDependencyCollection() {
         return myDependencyCollection;
     }
@@ -418,38 +426,38 @@ public class TaskManagerImpl implements TaskManager {
     }
 
     public void fireTaskProgressChanged(Task changedTask) {
-    	if (areEventsEnabled) {
-	        TaskPropertyEvent e = new TaskPropertyEvent(changedTask);
-	        for (int i = 0; i < myListeners.size(); i++) {
-	            TaskListener next = (TaskListener) myListeners.get(i);
-	            next.taskProgressChanged(e);
-	        }
-    	}
+        if (areEventsEnabled) {
+            TaskPropertyEvent e = new TaskPropertyEvent(changedTask);
+            for (int i = 0; i < myListeners.size(); i++) {
+                TaskListener next = (TaskListener) myListeners.get(i);
+                next.taskProgressChanged(e);
+            }
+        }
     }
 
     void fireTaskScheduleChanged(Task changedTask, GanttCalendar oldStartDate,
             GanttCalendar oldFinishDate) {
-    	if (areEventsEnabled) {
-	        TaskScheduleEvent e = new TaskScheduleEvent(changedTask, oldStartDate,
-	                oldFinishDate, changedTask.getStart(), changedTask.getEnd());
-	        // List copy = new ArrayList(myListeners);
-	        // myListeners.clear();
-	        for (int i = 0; i < myListeners.size(); i++) {
-	            TaskListener next = (TaskListener) myListeners.get(i);
-	            next.taskScheduleChanged(e);
-	        }
-    	}
+        if (areEventsEnabled) {
+            TaskScheduleEvent e = new TaskScheduleEvent(changedTask, oldStartDate,
+                    oldFinishDate, changedTask.getStart(), changedTask.getEnd());
+            // List copy = new ArrayList(myListeners);
+            // myListeners.clear();
+            for (int i = 0; i < myListeners.size(); i++) {
+                TaskListener next = (TaskListener) myListeners.get(i);
+                next.taskScheduleChanged(e);
+            }
+        }
     }
 
     private void fireDependencyAdded(TaskDependency newDependency) {
-    	if (areEventsEnabled) {
-	        TaskDependencyEvent e = new TaskDependencyEvent(
-	                getDependencyCollection(), newDependency);
-	        for (int i = 0; i < myListeners.size(); i++) {
-	            TaskListener next = (TaskListener) myListeners.get(i);
-	            next.dependencyAdded(e);
-	        }
-    	}
+        if (areEventsEnabled) {
+            TaskDependencyEvent e = new TaskDependencyEvent(
+                    getDependencyCollection(), newDependency);
+            for (int i = 0; i < myListeners.size(); i++) {
+                TaskListener next = (TaskListener) myListeners.get(i);
+                next.dependencyAdded(e);
+            }
+        }
     }
 
     private void fireDependencyRemoved(TaskDependency dep) {
@@ -462,14 +470,14 @@ public class TaskManagerImpl implements TaskManager {
     }
 
     private void fireTaskAdded(Task task) {
-    	if (areEventsEnabled) {
-	        TaskHierarchyEvent e = new TaskHierarchyEvent(this, task, null,
-	                getTaskHierarchy().getContainer(task));
-	        for (int i = 0; i < myListeners.size(); i++) {
-	            TaskListener next = (TaskListener) myListeners.get(i);
-	            next.taskAdded(e);
-	        }
-    	}
+        if (areEventsEnabled) {
+            TaskHierarchyEvent e = new TaskHierarchyEvent(this, task, null,
+                    getTaskHierarchy().getContainer(task));
+            for (int i = 0; i < myListeners.size(); i++) {
+                TaskListener next = (TaskListener) myListeners.get(i);
+                next.taskAdded(e);
+            }
+        }
     }
 
     private void fireTaskRemoved(Task task, Task oldSupertask) {
@@ -482,13 +490,13 @@ public class TaskManagerImpl implements TaskManager {
     }
 
     void fireTaskPropertiesChanged(Task task) {
-    	if (areEventsEnabled) {
-	        TaskPropertyEvent e = new TaskPropertyEvent(task);
-	        for (int i = 0; i < myListeners.size(); i++) {
-	            TaskListener next = (TaskListener) myListeners.get(i);
-	            next.taskPropertiesChanged(e);
-	        }
-    	}
+        if (areEventsEnabled) {
+            TaskPropertyEvent e = new TaskPropertyEvent(task);
+            for (int i = 0; i < myListeners.size(); i++) {
+                TaskListener next = (TaskListener) myListeners.get(i);
+                next.taskPropertiesChanged(e);
+            }
+        }
     }
 
     private void fireTaskModelReset() {
@@ -500,7 +508,7 @@ public class TaskManagerImpl implements TaskManager {
         }
     }
 
-    
+
     public TaskManagerConfig getConfig() {
         return myConfig;
     }
@@ -577,55 +585,59 @@ public class TaskManagerImpl implements TaskManager {
         }
 
         public int compareDocumentOrder(Task task1, Task task2) {
-        	if (task1==task2) {
-        		return 0;
-        	}
-        	List buffer1 = new ArrayList();
+            if (task1==task2) {
+                return 0;
+            }
+            List buffer1 = new ArrayList();
             for (Task container = task1; container != null; container = getContainer(container)) {
                 buffer1.add(0,container);
             }
-        	List buffer2 = new ArrayList();
+            List buffer2 = new ArrayList();
             for (Task container = task2; container != null; container = getContainer(container)) {
                 buffer2.add(0,container);
             }
             if (buffer1.get(0)!=getRootTask() && buffer2.get(0)==getRootTask()) {
-            	return -1;
+                return -1;
             }
             if (buffer1.get(0)==getRootTask() && buffer2.get(0)!=getRootTask()) {
-            	return 1;
+                return 1;
             }
 
             int result = 0;
-        	int i=0;
-        	Task commonRoot = null;
-        	while (true) {
-        		if (i==buffer1.size()) {
-        			return -1;
-        		}
-        		if (i==buffer2.size()) {
-        			return 1;
-        		}
-        		Task root1 = (Task) buffer1.get(i);
-        		Task root2 = (Task) buffer2.get(i);
-        		if (root1!=root2) {
-        			assert commonRoot!=null : "Failure comparing task="+task1+" and task="+task2+"\n. Path1="+buffer1+"\nPath2="+buffer2;
-        			Task[] nestedTasks = commonRoot.getNestedTasks();
-        			for (int j=0; j<nestedTasks.length; j++) {
-        				if (nestedTasks[j]==root1) {
-        					return -1;
-        				}
-        				if (nestedTasks[j]==root2) {
-        					return 1;
-        				}
-        			}
-        			throw new IllegalStateException("We should not be here");
-        		}
-        		i++;
-        		commonRoot = root1;
-        	}
+            int i=0;
+            Task commonRoot = null;
+            while (true) {
+                if (i==buffer1.size()) {
+                    return -1;
+                }
+                if (i==buffer2.size()) {
+                    return 1;
+                }
+                Task root1 = (Task) buffer1.get(i);
+                Task root2 = (Task) buffer2.get(i);
+                if (root1!=root2) {
+                    assert commonRoot!=null : "Failure comparing task="+task1+" and task="+task2+"\n. Path1="+buffer1+"\nPath2="+buffer2;
+                    Task[] nestedTasks = commonRoot.getNestedTasks();
+                    for (int j=0; j<nestedTasks.length; j++) {
+                        if (nestedTasks[j]==root1) {
+                            return -1;
+                        }
+                        if (nestedTasks[j]==root2) {
+                            return 1;
+                        }
+                    }
+                    throw new IllegalStateException("We should not be here");
+                }
+                i++;
+                commonRoot = root1;
+            }
         }
 
         public boolean contains(Task task) {
+            throw new UnsupportedOperationException();
+        }
+
+        public List<Task> getTasksInDocumentOrder() {
             throw new UnsupportedOperationException();
         }
 
@@ -676,9 +688,9 @@ public class TaskManagerImpl implements TaskManager {
                 dependency.setDifference(deps[i].getDifference());
                 dependency.setHardness(deps[i].getHardness());
             } catch (TaskDependencyException e) {
-            	if (!GPLogger.log(e)) {
-            		e.printStackTrace(System.err);
-            	}
+                if (!GPLogger.log(e)) {
+                    e.printStackTrace(System.err);
+                }
             }
         }
         return original2imported;
@@ -711,17 +723,17 @@ public class TaskManagerImpl implements TaskManager {
             CustomColumnsValues customValues = nested[i].getCustomValues();
             Collection customColums = myCustomColumnStorage.getCustomColums();
             for (Iterator it=customColums.iterator(); it.hasNext();) {
-            	CustomColumn nextColumn = (CustomColumn) it.next();
-            	Object value = customValues.getValue(nextColumn.getName());
-            	if (value!=null) {
-            		try {
-						nextImported.getCustomValues().setValue(nextColumn.getName(), value);
-					} catch (CustomColumnsException e) {
-			        	if (!GPLogger.log(e)) {
-			        		e.printStackTrace(System.err);
-			        	}
-					}
-            	}
+                CustomColumn nextColumn = (CustomColumn) it.next();
+                Object value = customValues.getValue(nextColumn.getName());
+                if (value!=null) {
+                    try {
+                        nextImported.getCustomValues().setValue(nextColumn.getName(), value);
+                    } catch (CustomColumnsException e) {
+                        if (!GPLogger.log(e)) {
+                            e.printStackTrace(System.err);
+                        }
+                    }
+                }
             }
             // System.out.println ("Import : " + nextImported.getTaskID() + "
             // -->> " + nextImported.getName());
@@ -740,7 +752,7 @@ public class TaskManagerImpl implements TaskManager {
     public void processCriticalPath(TaskNode root) {
         processCriticalPath((Task)root.getUserObject());
     }
-    
+
     public void processCriticalPath(Task root) {
         try {
             myAlgorithmCollection.getRecalculateTaskScheduleAlgorithm().run();
@@ -753,7 +765,7 @@ public class TaskManagerImpl implements TaskManager {
         resetCriticalPath();
         for (int i = 0; i < tasks.length; i++) {
             tasks[i].setCritical(true);
-        }        
+        }
     }
 
     private void resetCriticalPath() {
@@ -782,22 +794,22 @@ public class TaskManagerImpl implements TaskManager {
         }
     }
 
-	void onTaskMoved(TaskImpl task) {
-		if (!isRegistered(task)) {
-			registerTask(task);
-		}
-		myTaskMap.setDirty();
-	}
+    void onTaskMoved(TaskImpl task) {
+        if (!isRegistered(task)) {
+            registerTask(task);
+        }
+        myTaskMap.setDirty();
+    }
 
-	public void setEventsEnabled(boolean enabled) {
-		areEventsEnabled = enabled;
-	}
+    public void setEventsEnabled(boolean enabled) {
+        areEventsEnabled = enabled;
+    }
 
-	public CustomColumnsStorage getCustomColumnStorage() {
-		return myCustomColumnStorage;
-	}
+    public CustomColumnsStorage getCustomColumnStorage() {
+        return myCustomColumnStorage;
+    }
 
-	public URL getProjectDocument() {
-		return myConfig.getProjectDocumentURL();
-	}
+    public URL getProjectDocument() {
+        return myConfig.getProjectDocumentURL();
+    }
 }
