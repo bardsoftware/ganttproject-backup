@@ -16,7 +16,6 @@ import net.sourceforge.ganttproject.task.ResourceAssignment;
 
 class AssignmentSaver extends SaverBase {
     void save(IGanttProject project, TransformerHandler handler) throws SAXException {
-        AttributesImpl attrs = new AttributesImpl();
         startElement("allocations", handler);
         List<ProjectResource> resources = project.getHumanResourceManager().getResources();
         for (int i=0; i<resources.size(); i++) {

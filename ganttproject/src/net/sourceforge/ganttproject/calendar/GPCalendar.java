@@ -20,9 +20,9 @@ public interface GPCalendar {
         FORWARD, BACKWARD
     }
 
-    List<CalendarActivityImpl> getActivities(Date startDate, Date endDate);
+    List<GPCalendarActivity> getActivities(Date startDate, Date endDate);
 
-    List getActivities(Date startDate, TimeUnit timeUnit, long l);
+    List<GPCalendarActivity> getActivities(Date startDate, TimeUnit timeUnit, long l);
 
     void setWeekDayType(int day, DayType type);
 
@@ -63,9 +63,9 @@ public interface GPCalendar {
     /**
      * Adds <code>shift</code> period to <code>input</code> date taking into
      * account this calendar working/non-working time If input date corresponds
-     * to friday midnight and this calendar if configured to have a weekend on
-     * saturday and sunday then adding a shift of "1 day" will result to the
-     * midnight of the next monday
+     * to Friday midnight and this calendar if configured to have a weekend on
+     * Saturday and Sunday then adding a shift of "1 day" will result to the
+     * midnight of the next Monday
      */
     Date shiftDate(Date input, TaskLength shift);
 

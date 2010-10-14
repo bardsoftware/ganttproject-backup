@@ -44,7 +44,7 @@ public interface ChartModel {
     void setBottomTimeUnit(TimeUnit bottomTimeUnit);
     public TimeUnit getBottomUnit();
 
-    void setVisibleTasks(java.util.List/* <Task> */visibleTasks);
+    void setVisibleTasks(List<Task> visibleTasks);
 
     void paint(Graphics g);
 

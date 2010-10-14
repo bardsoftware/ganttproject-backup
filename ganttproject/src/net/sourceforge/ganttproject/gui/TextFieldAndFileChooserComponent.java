@@ -3,7 +3,6 @@
  */
 package net.sourceforge.ganttproject.gui;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.net.MalformedURLException;
@@ -13,12 +12,10 @@ import java.util.TimerTask;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
-import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
@@ -31,7 +28,6 @@ import org.eclipse.core.runtime.Status;
 import net.sourceforge.ganttproject.GPLogger;
 import net.sourceforge.ganttproject.action.CancelAction;
 import net.sourceforge.ganttproject.action.OkAction;
-import net.sourceforge.ganttproject.gui.options.GPOptionChoicePanel;
 import net.sourceforge.ganttproject.language.GanttLanguage;
 
 /**
@@ -50,7 +46,7 @@ public abstract class TextFieldAndFileChooserComponent {
 
     private JComponent myComponent;
 
-    private Component myParentComponent;
+//    private Component myParentComponent;
 
     private int myFileSelectionMode = JFileChooser.FILES_AND_DIRECTORIES;
 
@@ -72,7 +68,7 @@ public abstract class TextFieldAndFileChooserComponent {
 //        innerBox.add(new JLabel(label));
 //        innerBox.add(Box.createHorizontalStrut(5));
         myUiFacade = uiFacade;
-        myParentComponent = innerBox;
+//        myParentComponent = innerBox;
         myDialogCaption = dialogCaption;
         initComponents();
         innerBox.add(myComponent);
@@ -212,6 +208,7 @@ public abstract class TextFieldAndFileChooserComponent {
         }
     }
 
+    // TODO This method is not used... delete?
     private void examineFile(File f) {
         if (!f.exists()) {
             showFileStatus(new Status(IStatus.ERROR, "foo", IStatus.ERROR, "File does not exist", null));

@@ -12,23 +12,20 @@ import java.util.List;
 import net.sourceforge.ganttproject.GanttCalendar;
 import net.sourceforge.ganttproject.IGanttProject;
 import net.sourceforge.ganttproject.gui.DateIntervalListEditor.DateInterval;
-import net.sourceforge.ganttproject.language.GanttLanguage;
 
 /**
  * @author nbohn
  */
 public class GanttDialogPublicHoliday {
-    private GanttLanguage lang = GanttLanguage.getInstance();
 
     private DateIntervalListEditor publicHolidayBean;
 
 
     private DateIntervalListEditor.DateIntervalModel publicHolidays;
 
-    private boolean isChanged = false;
-
     private UIFacade myUIFacade;
-    
+
+    // TODO uiFacade is unused, remove from argument list??
     public GanttDialogPublicHoliday(IGanttProject project, UIFacade uiFacade) {
         publicHolidays = new DateIntervalListEditor.DefaultDateIntervalModel();
         for (Iterator<Date> iter = project.getActiveCalendar().getPublicHolidays().iterator(); iter.hasNext();) {
@@ -41,13 +38,12 @@ public class GanttDialogPublicHoliday {
         myUIFacade = uiFacade;
 
         //publicHolidayBean.addActionListener(this);
-
     }
 
     public Component getContentPane() {
         return publicHolidayBean;
     }
-    
+
     public List<GanttCalendar> getHolidays() {
         //return Arrays.asList(publicHolidays.toArray());
     	List<GanttCalendar> result =new ArrayList<GanttCalendar>();

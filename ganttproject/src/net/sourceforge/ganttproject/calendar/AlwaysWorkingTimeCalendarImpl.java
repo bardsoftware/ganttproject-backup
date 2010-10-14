@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.List;
 
 import net.sourceforge.ganttproject.GanttProject;
-import net.sourceforge.ganttproject.calendar.GPCalendar.MoveDirection;
 import net.sourceforge.ganttproject.task.TaskLength;
 import net.sourceforge.ganttproject.time.TimeUnit;
 
@@ -19,8 +18,8 @@ import net.sourceforge.ganttproject.time.TimeUnit;
  */
 public class AlwaysWorkingTimeCalendarImpl extends GPCalendarBase implements
         GPCalendar {
-    public List<CalendarActivityImpl> getActivities(Date startDate, Date endDate) {
-        return Collections.singletonList(new CalendarActivityImpl(startDate,
+    public List<GPCalendarActivity> getActivities(Date startDate, Date endDate) {
+        return Collections.singletonList((GPCalendarActivity) new CalendarActivityImpl(startDate,
                 endDate, true));
     }
 
@@ -35,14 +34,14 @@ public class AlwaysWorkingTimeCalendarImpl extends GPCalendarBase implements
                 activityStart, activityEnd, true));
     }
 
-    protected List<CalendarActivityImpl> getActivitiesBackward(Date startDate, TimeUnit timeUnit,
+    protected List<GPCalendarActivity> getActivitiesBackward(Date startDate, TimeUnit timeUnit,
             long unitCount) {
         Date activityEnd = timeUnit.adjustLeft(startDate);
         Date activityStart = activityEnd;
         while (unitCount-- > 0) {
             activityStart = timeUnit.jumpLeft(activityStart);
         }
-        return Collections.singletonList(new CalendarActivityImpl(
+        return Collections.singletonList((GPCalendarActivity) new CalendarActivityImpl(
                 activityStart, activityEnd, true));
     }
 
@@ -105,7 +104,7 @@ public class AlwaysWorkingTimeCalendarImpl extends GPCalendarBase implements
         return null;
     }
 
-    public List getActivities(Date startingFrom, TaskLength period) {
+    public List<GPCalendarActivity> getActivities(Date startingFrom, TaskLength period) {
         return getActivities(startingFrom, period.getTimeUnit(), period
                 .getLength());
     }

@@ -6,20 +6,15 @@
 package net.sourceforge.ganttproject.chart;
 
 import java.awt.Color;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 
-import net.sourceforge.ganttproject.calendar.GPCalendar;
 import net.sourceforge.ganttproject.chart.ChartModelBase.Offset;
 import net.sourceforge.ganttproject.chart.GraphicPrimitiveContainer.Line;
-import net.sourceforge.ganttproject.chart.GraphicPrimitiveContainer.Rectangle;
 import net.sourceforge.ganttproject.gui.UIConfiguration;
 import net.sourceforge.ganttproject.gui.options.model.BooleanOption;
 import net.sourceforge.ganttproject.gui.options.model.GPOption;
 import net.sourceforge.ganttproject.gui.options.model.GPOptionGroup;
 import net.sourceforge.ganttproject.time.TimeUnitText;
-import net.sourceforge.ganttproject.time.gregorian.FramerImpl;
 
 /**
  * Renders chart timeline.
@@ -30,8 +25,6 @@ class ChartHeaderImpl extends ChartRendererBase implements ChartHeader {
     private final BooleanOption myRedlineOption;
     private final BooleanOption myProjectDatesOption;
     private GPOptionGroup myOptions;
-    private final FramerImpl myDayFramer = new FramerImpl(Calendar.DAY_OF_MONTH);
-    private Date myToday;
     private GraphicPrimitiveContainer myTimelineContainer;
 
     ChartHeaderImpl(ChartModel model, final UIConfiguration projectConfig) {
@@ -58,7 +51,6 @@ class ChartHeaderImpl extends ChartRendererBase implements ChartHeader {
         myPrimitiveContainer.newLayer();
         myTimelineContainer = myPrimitiveContainer.newLayer();
         createGreyRectangleWithNiceBorders();
-        myToday = myDayFramer.adjustRight(GregorianCalendar.getInstance().getTime());
     }
 
     private GraphicPrimitiveContainer getTimelineContainer() {

@@ -41,7 +41,7 @@ public abstract class AdjustTaskBoundsAlgorithm extends AlgorithmBase {
 
     public void adjustNestedTasks(Task supertask) throws TaskDependencyException {
         TaskContainmentHierarchyFacade containmentFacade = createContainmentFacade();
-        List /*<Task>*/<Task> nestedTasks = new ArrayList<Task>(Arrays.asList(containmentFacade.getNestedTasks(supertask)));
+        List<Task> nestedTasks = new ArrayList<Task>(Arrays.asList(containmentFacade.getNestedTasks(supertask)));
         if (nestedTasks.size()==0) {
             return;
         }
@@ -54,14 +54,14 @@ public abstract class AdjustTaskBoundsAlgorithm extends AlgorithmBase {
                 TaskMutator mutator = nextNested.createMutatorFixingDuration();
                 mutator.setStart(supertask.getStart());
                 mutator.commit();
-                //
+
                 modifiedTasks.add(nextNested);
             }
             if (nextNested.getEnd().getTime().after(supertask.getEnd().getTime())) {
                 TaskMutator mutator = nextNested.createMutatorFixingDuration();
                 mutator.shift(supertask.getManager().createLength(supertask.getDuration().getTimeUnit(), nextNested.getEnd().getTime(), supertask.getEnd().getTime()));
                 mutator.commit();
-                //
+
                 modifiedTasks.add(nextNested);
             }
         }
@@ -98,7 +98,6 @@ public abstract class AdjustTaskBoundsAlgorithm extends AlgorithmBase {
         }
         myModifiedTasks.clear();
     }
-    
 
     private void recalculateSupertaskScheduleBottomUp(Set<Task> supertasks,
             TaskContainmentHierarchyFacade containmentFacade) {

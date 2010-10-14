@@ -31,7 +31,6 @@ import net.sourceforge.ganttproject.CustomPropertyManager;
 import net.sourceforge.ganttproject.DefaultCustomPropertyDefinition;
 import net.sourceforge.ganttproject.GanttCalendar;
 import net.sourceforge.ganttproject.roles.Role;
-import net.sourceforge.ganttproject.task.CustomPropertyEvent;
 import net.sourceforge.ganttproject.undo.GPUndoManager;
 
 /**
@@ -50,8 +49,6 @@ public class HumanResourceManager implements ResourceManager, CustomPropertyMana
     /* customFields maintains a list of custom field names
      * and their default values */
     private final Map<String, CustomPropertyDefinition> customFields = new HashMap<String, CustomPropertyDefinition>();
-
-    private final List myListeners = new ArrayList();
 
     public HumanResourceManager(Role defaultRole) {
         myDefaultRole = defaultRole;
@@ -84,7 +81,7 @@ public class HumanResourceManager implements ResourceManager, CustomPropertyMana
     public void addCustomField(CustomPropertyDefinition definition) {
         customFields.put(definition.getName(), definition);
 
-        /* all the existant resources are added the new property field */
+        /* all the existent resources are added the new property field */
         Iterator<ProjectResource> it = resources.iterator();
         while (it.hasNext()) {
             ((HumanResource)it.next()).addCustomField(definition.getName(), definition.getDefaultValue());
@@ -98,7 +95,7 @@ public class HumanResourceManager implements ResourceManager, CustomPropertyMana
     public void removeCustomField(String title) {
         customFields.remove(title);
 
-        /* the property field is removed from all the existant resources */
+        /* the property field is removed from all the existent resources */
         Iterator<ProjectResource> it = resources.iterator();
         while (it.hasNext()) {
             ((HumanResource)it.next()).removeCustomField(title);
@@ -106,7 +103,7 @@ public class HumanResourceManager implements ResourceManager, CustomPropertyMana
     }
 
     public ProjectResource getById(int id) {
-        // Linear search is not really efficent, but we dont have so many
+        // Linear search is not really efficient, but we do not have so many
         // resources !?
         ProjectResource pr = null;
         for (int i = 0; i < resources.size(); i++)
@@ -265,14 +262,11 @@ public class HumanResourceManager implements ResourceManager, CustomPropertyMana
 
     public void importData(CustomPropertyManager source) {
         // TODO Auto-generated method stub
-
-
-}
+    }
 
     @Override
     public void addListener(CustomPropertyListener listener) {
         // TODO Auto-generated method stub
-
     }
 
     @Override

@@ -101,8 +101,6 @@ public class StyledPainterImpl implements Painter {
         margin = myConfig.getMargin();
     }
 
-    private Map myGraphics2calculator = new HashMap();
-
     public void setGraphics(Graphics g) {
         myGraphics = g;
         myTextLengthCalculator.setGraphics(g);
@@ -175,7 +173,7 @@ public class StyledPainterImpl implements Painter {
                 shapePaint = new ShapePaint(ShapeConstants.THICK_BACKSLASH,
                         Color.BLACK, c);
             }
-            
+
             if (shapePaint!=null) {
                 g.setPaint(shapePaint);
             }
@@ -194,7 +192,7 @@ public class StyledPainterImpl implements Painter {
             return 0;
         }
     }
-    
+
     private RectanglePainter myTaskRectanglePainter = new TaskRectanglePainter();
     private RectanglePainter myTaskStartRectanglePainter = new TaskRectanglePainter() {
         protected void drawBorder(Graphics g, Rectangle next) {
@@ -204,7 +202,6 @@ public class StyledPainterImpl implements Painter {
         protected int getCorrectionShift() {
             return -1;
         }
-        
     };
     private RectanglePainter myTaskEndRectanglePainter = new TaskRectanglePainter() {
         protected void drawBorder(Graphics g, Rectangle next) {
@@ -226,7 +223,7 @@ public class StyledPainterImpl implements Painter {
     private RectanglePainter myTaskHolidayRectanglePainter = new RectanglePainter() {
         float myAlphaValue = 0;
         Composite myAlphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, myAlphaValue);
-        
+
         public void paint(GraphicPrimitiveContainer.Rectangle next) {
             if (myAlphaValue!=myConfig.getWeekendAlphaValue()) {
                 myAlphaValue = myConfig.getWeekendAlphaValue();
@@ -250,7 +247,7 @@ public class StyledPainterImpl implements Painter {
             g.drawLine(next.myLeftX, next.myTopY, next.getRightX(), next.myTopY);
             g.drawLine(next.myLeftX, next.getBottomY(), next.getRightX(), next.getBottomY());
             //g.drawRect(next.myLeftX, next.myTopY, next.myWidth, next.myHeight);
-            
+
             g.setComposite(was);
         }
         private Color getDefaultColor() {
@@ -259,8 +256,7 @@ public class StyledPainterImpl implements Painter {
 
 
     };
-    
-//    
+
     private RectanglePainter myTaskSupertaskRectanglePainter = new RectanglePainter() {
         public void paint(Rectangle next) {
             Color c = next.getBackgroundColor();
@@ -475,7 +471,6 @@ public class StyledPainterImpl implements Painter {
     private RectanglePainter myDayOffPainter = new RectanglePainter() {
         public void paint(Rectangle next) {
             Graphics g = myGraphics;
-            String style = next.getStyle();
 
             int margin = StyledPainterImpl.this.margin - 3;
             Color c = myConfig.getDayOffColor();
@@ -550,7 +545,6 @@ public class StyledPainterImpl implements Painter {
         private int[] myYPoints = new int[4];
 
         public void paint(GraphicPrimitiveContainer.Rectangle next) {
-            Object modelObject = next.getModelObject();
             Graphics g = myGraphics;
             String style = next.getStyle();
             Color c;
@@ -586,8 +580,7 @@ public class StyledPainterImpl implements Painter {
                 g.fillRect(next.myLeftX, next.myTopY + next.myHeight - 6,
                         next.myWidth, 3);
                 int topy = next.myTopY + next.myHeight - 3;
-                // if the super task is completely displayed
-                // so whe draw the left triangle
+                // if the super task is completely displayed, we draw the left triangle
                 if (style.indexOf("apart") <= 0)
                     g.fillPolygon(new int[] { next.myLeftX, next.myLeftX + 3,
                             next.myLeftX }, new int[] { topy, topy, topy + 3 },

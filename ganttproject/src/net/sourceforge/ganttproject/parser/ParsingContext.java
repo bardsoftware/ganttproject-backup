@@ -17,11 +17,11 @@ public class ParsingContext {
     void addTaskWithLegacyFixedStart(Task task) {
     	myFixedStartTasks.add(task);
     }
-    
+
     Set<Task> getTasksWithLegacyFixedStart() {
     	return myFixedStartTasks;
     }
-    
+
     private final Set<Task> myFixedStartTasks = new HashSet<Task>();
     private int myTaskID;
 }

@@ -26,7 +26,7 @@ import net.sourceforge.ganttproject.language.GanttLanguage;
  * 
  */
 public class GanttSaveAsPreviousStateBean extends JPanel {
-    private JPanel generalPanel, southPanel;
+    private JPanel southPanel;
 
     private JButton okButton, cancelButton;
 
@@ -130,7 +130,6 @@ public class GanttSaveAsPreviousStateBean extends JPanel {
         cancelButton.addActionListener(l);
 
         nameComboBox.addActionListener(l);
-
     }
 
     public JTextField getTextField() {

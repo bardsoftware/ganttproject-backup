@@ -51,12 +51,12 @@ public class WeekendCalendarImpl extends GPCalendarBase implements GPCalendar {
         setWeekDayType(GregorianCalendar.SUNDAY, GPCalendar.DayType.WEEKEND);
     }
 
-    public List/* <GPCalendarActivity> */<CalendarActivityImpl> getActivities(Date startDate,
+    public List<GPCalendarActivity> getActivities(Date startDate,
             final Date endDate) {
         if (getWeekendDaysCount() == 0 && publicHolidaysArray.isEmpty() && myStableHolidays.isEmpty()) {
             return myRestlessCalendar.getActivities(startDate, endDate);
         }
-        List<CalendarActivityImpl> result = new ArrayList<CalendarActivityImpl>();
+        List<GPCalendarActivity> result = new ArrayList<GPCalendarActivity>();
         Date curDayStart = myFramer.adjustLeft(startDate);
         boolean isWeekendState = isNonWorkingDay(curDayStart);
         // System.err.println("getActivities(): start="+startDate+"
@@ -134,9 +134,9 @@ public class WeekendCalendarImpl extends GPCalendarBase implements GPCalendar {
         return result;
     }
 
-    protected List<CalendarActivityImpl> getActivitiesBackward(Date startDate, TimeUnit timeUnit,
+    protected List<GPCalendarActivity> getActivitiesBackward(Date startDate, TimeUnit timeUnit,
             long unitCount) {
-        List<CalendarActivityImpl> result = new LinkedList<CalendarActivityImpl>();
+        List<GPCalendarActivity> result = new LinkedList<GPCalendarActivity>();
         Date unitStart = timeUnit.adjustLeft(startDate);
         while (unitCount > 0) {
             Date prevUnitStart = timeUnit.jumpLeft(unitStart);

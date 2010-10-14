@@ -37,7 +37,6 @@ class HistorySaver extends SaverBase {
             endElement("previous-tasks", handler);
         }
         endElement("previous", handler);
-        
     }
 
 }

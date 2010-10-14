@@ -1,10 +1,8 @@
 package net.sourceforge.ganttproject.chart;
 
 import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import net.sourceforge.ganttproject.gui.UIConfiguration;
@@ -19,7 +17,6 @@ import net.sourceforge.ganttproject.task.Task;
 import net.sourceforge.ganttproject.task.TaskContainmentHierarchyFacade;
 import net.sourceforge.ganttproject.task.TaskManager;
 import net.sourceforge.ganttproject.time.TimeUnitStack;
-import net.sourceforge.ganttproject.util.ColorConvertion;
 
 public class ChartModelResource extends ChartModelBase {
 
@@ -127,9 +124,9 @@ public class ChartModelResource extends ChartModelBase {
                 new ProjectResource[0]);
     }
 
-
     public GPOptionGroup[] getChartOptionGroups() {
         List<GPOptionGroup> result = new ArrayList<GPOptionGroup>();
+        // FIXME Need to add superGroups to result?? (or what else is the point of fetching them)
         GPOptionGroup[] superGroups = super.getChartOptionGroups();
         result.add(myColorOptions);
         return result.toArray(new GPOptionGroup[result.size()]);
@@ -159,12 +156,10 @@ public class ChartModelResource extends ChartModelBase {
 
     public void setTaskContainment(TaskContainmentHierarchyFacade taskContainment) {
         // TODO Auto-generated method stub
-
     }
 
-    public void setVisibleTasks(List visibleTasks) {
+    public void setVisibleTasks(List<Task> visibleTasks) {
         // TODO Auto-generated method stub
-
     }
 
     public int calculateRowHeight() {

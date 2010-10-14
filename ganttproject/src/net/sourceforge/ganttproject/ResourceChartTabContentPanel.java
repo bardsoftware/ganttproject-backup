@@ -13,7 +13,6 @@ import javax.swing.JPanel;
 
 import org.eclipse.core.runtime.IAdaptable;
 
-import net.sourceforge.ganttproject.action.GPAction;
 import net.sourceforge.ganttproject.chart.Chart;
 import net.sourceforge.ganttproject.chart.TimelineChart;
 import net.sourceforge.ganttproject.chart.overview.NavigationPanel;

@@ -39,7 +39,6 @@ public interface TaskDependencyConstraint extends Cloneable {
 
     TaskDependency.ActivityBinding getActivityBinding();
 
-
     interface Collision {
         GanttCalendar getAcceptableStart();
 

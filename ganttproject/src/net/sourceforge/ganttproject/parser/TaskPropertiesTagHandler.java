@@ -6,19 +6,8 @@
  */
 package net.sourceforge.ganttproject.parser;
 
-import java.util.ArrayList;
-import java.util.GregorianCalendar;
-import java.util.List;
-
-import net.sourceforge.ganttproject.CustomPropertyDefinition;
 import net.sourceforge.ganttproject.CustomPropertyManager;
-import net.sourceforge.ganttproject.GanttCalendar;
-import net.sourceforge.ganttproject.Mediator;
-import net.sourceforge.ganttproject.task.CustomColumn;
-import net.sourceforge.ganttproject.task.CustomColumnsStorage;
 
-import org.w3c.util.DateParser;
-import org.w3c.util.InvalidDateException;
 import org.xml.sax.Attributes;
 
 /**

@@ -202,13 +202,14 @@ public class GanttCSVExport {
         if (csvOptions.bExportResourceRole) {
         	writeCell(out, i18n("tableColResourceRole"));        	
         }
-        List customFieldDefs = myProject.getResourceCustomPropertyManager().getDefinitions();
+        List<CustomPropertyDefinition> customFieldDefs = myProject.getResourceCustomPropertyManager().getDefinitions();
         for (int i=0; i<customFieldDefs.size(); i++) {
-        	CustomPropertyDefinition nextDef = (CustomPropertyDefinition) customFieldDefs.get(i);
+        	CustomPropertyDefinition nextDef = customFieldDefs.get(i);
         	writeCell(out, nextDef.getName());
         }
         out.write("\n\n");
     }
+
 	/** write the resources. */
     private void writeResources(OutputStreamWriter out) throws IOException {
     	writeResourceHeaders(out);

@@ -68,7 +68,7 @@ import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
- * The class aible to load and save options on the file
+ * This class is able to load and save options on the file
  */
 public class GanttOptions {
 
@@ -485,15 +485,14 @@ public class GanttOptions {
             addAttribute("spec", getFontSpec(getUIConfiguration()
                     .getChartMainFont()), attrs);
             emptyElement("font", attrs, handler);
-            //
 
             saveIconPositions(handler);
             saveRoleSets(handler);
-            for (Iterator options = myGPOptions.entrySet().iterator(); options.hasNext();) {
-                Map.Entry nextEntry = (Entry) options.next();
-                GPOption nextOption = (GPOption)nextEntry.getValue();
-                if (nextOption.getPersistentValue()!=null) {
-                    addAttribute("id", nextEntry.getKey().toString(), attrs);
+            for (Iterator<Entry<String, GPOption>> options = myGPOptions.entrySet().iterator(); options.hasNext();) {
+                Map.Entry<String, GPOption> nextEntry = options.next();
+                GPOption nextOption = nextEntry.getValue();
+                if (nextOption.getPersistentValue() != null) {
+                    addAttribute("id", nextEntry.getKey(), attrs);
                     addAttribute("value", nextOption.getPersistentValue(), attrs);
                     emptyElement("option", attrs, handler);
                 }
@@ -501,7 +500,7 @@ public class GanttOptions {
             savePreferences(myPluginPreferencesRootNode.node("/configuration"), handler);
             savePreferences(myPluginPreferencesRootNode.node("/instance"), handler);
             endElement("ganttproject-options", handler);
-            //
+
             GPLogger.log("[GanttOptions] save(): finished!!");
             handler.endDocument();
         } catch (Exception e) {
@@ -707,8 +706,8 @@ public class GanttOptions {
 
         private PluginOptionsHandler myPluginOptionsHandler;
 
-        public void startElement(String namespaceURI, String sName, // simple
-                // name
+        public void startElement(String namespaceURI, 
+                String sName, // simple name
                 String qName, // qualified name
                 Attributes attrs) throws SAXException {
 
@@ -816,12 +815,10 @@ public class GanttOptions {
                             } else if (value.equals("Hungarian")
                                     || value.equals("hu")) {
                                 language.setLocale(new Locale("hu", "HU"));
-                            }
-                            else if (value.equals("Hrvatski")
+                            } else if (value.equals("Hrvatski")
                                 || value.equals("hr")) {
                             language.setLocale(new Locale("hr", "HR"));
-                            }
-                            else if (value
+                            } else if (value
                                     .equals("\u05d0\u05e0\u05d2\u05dc\u05d9\u05ea")
                                     || value.equals("iw")) {
                                 language.setLocale(new Locale("iw", "IW"));
@@ -856,7 +853,6 @@ public class GanttOptions {
                             } else if (value.equals("Ti\u1ebfng anh")
                                     || value.equals("vi")) {
                                 language.setLocale(new Locale("vi", "VN"));
-
                             }
                         }
                     } else if (qName.equals("task-color")) {
@@ -915,9 +911,7 @@ public class GanttOptions {
                             if (new File(value).exists())
                                 workingDir = value;
                         }
-                    }
-
-                    else if (qName.equals("task-name")) {
+                    } else if (qName.equals("task-name")) {
                         if (aName.equals("prefix"))
                             sTaskNamePrefix = value;
                     } else if (qName.equals("toolBar")) {
@@ -1052,11 +1046,9 @@ public class GanttOptions {
                 myPluginOptionsHandler = null;
             }
         }
-
-
-
     }
 
+    // TODO Method is never used... delete?
     private String getFilePath(String value) {
         String result = null;
         String filePath;
@@ -1092,6 +1084,7 @@ public class GanttOptions {
     // public Color getResourceOverloadColor() {
     // return getUIConfiguration().getResourceOverloadColor();
     // }
+
     /** @return the lock DAV Minutes. */
     public int getLockDAVMinutes() {
         return lockDAVMinutes;
@@ -1116,7 +1109,6 @@ public class GanttOptions {
     public String getXslFo() {
         return (new File(xslFo).exists()) ? xslFo : getClass().getResource(
                 "/xslfo/ganttproject.xsl").toString();
-
     }
 
     /** @return if the mouse is used to drag on the chart. */

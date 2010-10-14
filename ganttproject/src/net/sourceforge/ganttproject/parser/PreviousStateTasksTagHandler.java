@@ -25,8 +25,6 @@ public class PreviousStateTasksTagHandler extends DefaultHandler implements
 
     private GanttPreviousState previousState;
 
-    private String s = "    "; // the marge
-
     private final List<GanttPreviousState> myPreviousStates;
 
     private ArrayList<GanttPreviousStateTask> tasks = new ArrayList<GanttPreviousStateTask>();
@@ -50,8 +48,8 @@ public class PreviousStateTasksTagHandler extends DefaultHandler implements
                 	}
                 }
             }
-        } else if ((qName.equals("previous-task"))) {// && (myPreviousStates
-            // != null)) {
+        } else if ((qName.equals("previous-task"))
+                /*&& (myPreviousStates != null)*/) {
             writePreviousTask(attrs);
         }
     }

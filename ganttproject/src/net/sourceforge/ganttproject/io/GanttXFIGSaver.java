@@ -50,7 +50,7 @@ public class GanttXFIGSaver {
     List<Task> lot = new ArrayList<Task>(); // list of tasks
 
     // ArrayList lots = new ArrayList();
-    ArrayList loc = new ArrayList(); // list of colors
+    ArrayList<Color> loc = new ArrayList<Color>(); // list of colors
 
     ArrayList<TextObject> atl = new ArrayList<TextObject>(); // list of text object
 
@@ -92,8 +92,6 @@ public class GanttXFIGSaver {
     public void beginToSave(OutputStreamWriter fout) throws IOException {
         if (debug)
             System.out.println("beginToSave begin");
-
-        float depthval = 50; // depth level - 999 is the lowest level.
 
         // targetWidthPoints is in pixels, 1200 pixels per inch,
         // or about 472 pixels/cm
@@ -335,13 +333,11 @@ public class GanttXFIGSaver {
 
         // Construct box corners
         float boxLen = Math.max(1.0f, (task.getLength()) * scale);
-        float boxLenPct = Math.max(1.0f, boxLen
-                * task.getCompletionPercentage() / 100.0f);
+        // float boxLenPct = Math.max(1.0f, boxLen * task.getCompletionPercentage() / 100.0f);
         float boxHeight = 1200.0f / 8.0f;
-        float pLo = boxHeight * 0.25f;
-        float pHi = boxHeight * 0.75f;
-        float[] pointsPct = { 0, pLo, boxLenPct, pLo, boxLenPct, pHi, 0, pHi,
-                0, pLo };
+        // float pLo = boxHeight * 0.25f;
+        // float pHi = boxHeight * 0.75f;
+        // float[] pointsPct = { 0, pLo, boxLenPct, pLo, boxLenPct, pHi, 0, pHi, 0, pLo };
 
         if (boxObject.sub_type == 2) {
             boxObject.points = new float[10];

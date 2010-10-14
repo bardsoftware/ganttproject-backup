@@ -37,9 +37,6 @@ import org.xml.sax.helpers.AttributesImpl;
 public class GanttPreviousState {
     private final String myName;
 
-    private DocumentManager myManager;
-
-    private ParserFactory myFactory;
 
     private File myFile;
 
@@ -47,11 +44,10 @@ public class GanttPreviousState {
 
     private GanttTree2 myTree;
 
+    //TODO myProject is not used... remove?
     private GanttProject myProject;
 
-    private GanttLanguage lang = GanttLanguage.getInstance();
-
-    private String s = "    "; // the marge
+    private String s = "    "; // the margin
 
     // constructor for a new previous state
     public GanttPreviousState(String name, GanttProject project)
@@ -76,7 +72,6 @@ public class GanttPreviousState {
 
     public void saveFile() {
         try {
-            AttributesImpl attrs = new AttributesImpl();
             StreamResult result = new StreamResult(os);
             SAXTransformerFactory factory = (SAXTransformerFactory) SAXTransformerFactory
                     .newInstance();
@@ -114,7 +109,6 @@ public class GanttPreviousState {
 
     public void saveFilesFromLoaded(ArrayList<GanttPreviousStateTask> tasks) {
         try {
-            AttributesImpl attrs = new AttributesImpl();
             StreamResult result = new StreamResult(os);
             SAXTransformerFactory factory = (SAXTransformerFactory) SAXTransformerFactory
                     .newInstance();
@@ -189,7 +183,8 @@ public class GanttPreviousState {
 
     /** Simple write information of tasks */
     public void writeTask(Writer fout, DefaultMutableTreeNode node) {
-        ArrayList lot = new ArrayList();
+        /** List of tasks */
+        ArrayList<Task> lot = new ArrayList<Task>();
         try {
             GanttTask task = (GanttTask) node.getUserObject();
 
@@ -255,7 +250,7 @@ public class GanttPreviousState {
         }
     }
 
-    /** Correct the charcters to be compatible with xml format */
+    /** Correct the characters to be compatible with xml format */
     public String correct(String s) {
         String res;
         if (s != null) {

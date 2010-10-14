@@ -94,7 +94,7 @@ class GPTreeTableBase extends JNTreeTable{
                 			AttributedCharacterIterator iter = formats[i].formatToCharacterIterator(typedDate);
                 			int additionalZeroes = -1;
                 			StringBuffer result = new StringBuffer();
-                			for (char c = iter.first(); c!=iter.DONE; c = iter.next()) {
+                			for (char c = iter.first(); c!=AttributedCharacterIterator.DONE; c = iter.next()) {
                 				if (iter.getAttribute(DateFormat.Field.YEAR)!=null && additionalZeroes==-1) {
                         			additionalZeroes = iter.getRunLimit(DateFormat.Field.YEAR) - iter.getIndex();
                 					for (int j=0; j<additionalZeroes; j++) {
@@ -171,7 +171,7 @@ class GPTreeTableBase extends JNTreeTable{
         	}
         }
     }
-    
+
     protected abstract class VscrollAdjustmentListener implements AdjustmentListener {
     	private final boolean isMod;
 

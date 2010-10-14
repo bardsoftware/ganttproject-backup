@@ -227,5 +227,4 @@ public class GanttProjectImpl implements IGanttProject {
     public void repaintResourcePanel() {
         // TODO Auto-generated method stub
     }
-
 }

@@ -18,7 +18,7 @@ public class TaskDependencySliceImpl implements TaskDependencySlice {
     public TaskDependency[] toArray() {
         return myDependencyCollection.getDependencies(myTask);
     }
-    
+
     public void clear() {
         TaskDependency[] deps = toArray();
         for (int i = 0; i < deps.length; i++) {

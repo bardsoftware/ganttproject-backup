@@ -101,8 +101,8 @@ class TaskSaver extends SaverBase {
         }
 
         CustomColumnsValues ccv = task.getCustomValues();
-        for (Iterator/*<CustomColumn>*/<CustomPropertyDefinition> it = customColumns.getCustomColums().iterator(); it.hasNext();) {
-            CustomColumn nextColumn = (CustomColumn) it.next();
+        for (Iterator<CustomColumn> it = customColumns.getCustomColums().iterator(); it.hasNext();) {
+            CustomColumn nextColumn = it.next();
             final String name = nextColumn.getName();
             final String idc = nextColumn.getId();
             Object value = ccv.getValue(name);
@@ -152,9 +152,9 @@ class TaskSaver extends SaverBase {
         writeTaskProperty(handler, "tpd7", "completion", "default", "int");
         writeTaskProperty(handler, "tpd8", "coordinator", "default", "text");
         writeTaskProperty(handler, "tpd9", "predecessorsr", "default", "text");
-        Iterator/*<CustomColumn>*/<CustomPropertyDefinition> it = customCol.getCustomColums().iterator();
+        Iterator<CustomColumn> it = customCol.getCustomColums().iterator();
         while (it.hasNext()) {
-            final CustomColumn cc = (CustomColumn) it.next();
+            final CustomColumn cc = it.next();
             Object defVal = cc.getDefaultValue();
             final Class cla = cc.getType();
             final String valueType = encodeFieldType(cla);

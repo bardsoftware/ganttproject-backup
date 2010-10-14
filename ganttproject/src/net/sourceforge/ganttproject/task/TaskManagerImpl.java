@@ -15,11 +15,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import net.sourceforge.ganttproject.CustomPropertyDefinition;
 import net.sourceforge.ganttproject.GPLogger;
 import net.sourceforge.ganttproject.GanttCalendar;
 import net.sourceforge.ganttproject.GanttTask;
-import net.sourceforge.ganttproject.GanttTaskRelationship;
 import net.sourceforge.ganttproject.calendar.AlwaysWorkingTimeCalendarImpl;
 import net.sourceforge.ganttproject.calendar.CalendarFactory;
 import net.sourceforge.ganttproject.calendar.GPCalendar;
@@ -76,8 +74,6 @@ public class TaskManagerImpl implements TaskManager {
     private final TaskManagerConfig myConfig;
 
     private final TaskContainmentHierarchyFacade.Factory myFacadeFactory;
-
-    private TaskContainmentHierarchyFacade myTaskContainment;
 
     private boolean areEventsEnabled = true;
 
@@ -595,6 +591,7 @@ public class TaskManagerImpl implements TaskManager {
         }
     }
 
+    // TODO Method is unused... delete?
     private void fireTaskRemoved(Task task, Task oldSupertask) {
         TaskHierarchyEvent e = new TaskHierarchyEvent(this, task, oldSupertask,
                 null);
@@ -718,7 +715,6 @@ public class TaskManagerImpl implements TaskManager {
                 return 1;
             }
 
-            int result = 0;
             int i=0;
             Task commonRoot = null;
             while (true) {
@@ -836,9 +832,9 @@ public class TaskManagerImpl implements TaskManager {
 
             myCustomColumnStorage.processNewTask(nextImported);
             CustomColumnsValues customValues = nested[i].getCustomValues();
-            Collection<CustomPropertyDefinition> customColums = myCustomColumnStorage.getCustomColums();
-            for (Iterator<CustomPropertyDefinition> it=customColums.iterator(); it.hasNext();) {
-                CustomColumn nextColumn = (CustomColumn) it.next();
+            Collection<CustomColumn> customColums = myCustomColumnStorage.getCustomColums();
+            for (Iterator<CustomColumn> it=customColums.iterator(); it.hasNext();) {
+                CustomColumn nextColumn = it.next();
                 Object value = customValues.getValue(nextColumn.getName());
                 if (value!=null) {
                     try {

@@ -20,7 +20,6 @@ import net.sourceforge.ganttproject.language.GanttLanguage;
 import net.sourceforge.ganttproject.language.GanttLanguage.Event;
 import net.sourceforge.ganttproject.task.CustomColumn;
 import net.sourceforge.ganttproject.task.CustomColumnsException;
-import net.sourceforge.ganttproject.task.CustomColumnsManager;
 import net.sourceforge.ganttproject.task.ResourceAssignment;
 import net.sourceforge.ganttproject.task.Task;
 import net.sourceforge.ganttproject.task.TaskInfo;
@@ -339,11 +338,11 @@ public class GanttTreeTableModel extends DefaultTreeTableModel implements
             int nb = 0;
             for (int i = 0; i < tAssign.length; i++) {
                 ResourceAssignment resAss = tAssign[i];
-                if (resAss.isCoordinator())
+                if (resAss.isCoordinator()) {
                     sb.append(nb++ == 0 ? "" : ", ").append(
                             resAss.getResource().getName());
+                }
             }
-            // res = "Not implemented";
             res = sb.toString();
             break;
         }
@@ -384,7 +383,7 @@ public class GanttTreeTableModel extends DefaultTreeTableModel implements
             return;
         }
         if (isCellEditable(node, column)) {
-//			System.out.println("undoable column: " + column);
+//            System.out.println("undoable column: " + column);
             Mediator.getGanttProjectSingleton().getUndoManager().undoableEdit(
                     "Change properties column", new Runnable() {
                         public void run() {
@@ -392,7 +391,7 @@ public class GanttTreeTableModel extends DefaultTreeTableModel implements
                         }
                     });
         } else {
-//			System.out.println("NOT undoable column: " + column);
+//            System.out.println("NOT undoable column: " + column);
             setValue(value, node, column);
         }
         // System.out.println("node : " + node);
@@ -403,6 +402,7 @@ public class GanttTreeTableModel extends DefaultTreeTableModel implements
 
     /**
      * Set value in left pane cell
+     * 
      * @param value
      * @param node
      * @param column
@@ -530,11 +530,11 @@ public class GanttTreeTableModel extends DefaultTreeTableModel implements
      * Returns the corresponding task node according to the given task.
      *
      * @param task
-     *            The task whom tasknode we want to get.
-     * @return The corresponding task node according to the given task.
+     *            The task whose TaskNode we want to get.
+     * @return The corresponding TaskNode according to the given task.
      */
     public TaskNode getTaskNodeForTask(Task task) {
-        Enumeration<TreeNode> enumeration = ((TaskNode) getRoot()).preorderEnumeration();
+        Enumeration enumeration = ((TaskNode) getRoot()).preorderEnumeration();
         while (enumeration.hasMoreElements()) {
             Object next = enumeration.nextElement();
             if (!(next instanceof TaskNode))
@@ -560,7 +560,6 @@ public class GanttTreeTableModel extends DefaultTreeTableModel implements
      */
     public void move(Task whatMove, Task whereMove) {
         // TODO Auto-generated method stub
-
     }
 
     /**

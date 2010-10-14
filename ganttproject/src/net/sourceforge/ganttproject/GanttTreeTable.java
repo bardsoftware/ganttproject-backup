@@ -29,8 +29,6 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JTree;
@@ -48,7 +46,6 @@ import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
 import javax.swing.tree.TreePath;
 
 import net.sourceforge.ganttproject.chart.TimelineChart;
@@ -59,10 +56,8 @@ import net.sourceforge.ganttproject.gui.TableHeaderUIFacade;
 import net.sourceforge.ganttproject.language.GanttLanguage;
 import net.sourceforge.ganttproject.language.GanttLanguage.Event;
 import net.sourceforge.ganttproject.language.GanttLanguage.Listener;
-import net.sourceforge.ganttproject.task.CustomColumEvent;
 import net.sourceforge.ganttproject.task.CustomColumn;
 import net.sourceforge.ganttproject.task.CustomColumnsException;
-import net.sourceforge.ganttproject.task.CustomColumsListener;
 import net.sourceforge.ganttproject.task.CustomPropertyEvent;
 import net.sourceforge.ganttproject.task.Task;
 import net.sourceforge.ganttproject.task.TaskContainmentHierarchyFacade;
@@ -74,7 +69,7 @@ import org.jdesktop.swing.decorator.HighlighterPipeline;
 import org.jdesktop.swing.table.TableColumnExt;
 
 /**
- * Treetable used to displayed tabular data and hierarchical data.
+ * TreeTable used to displayed tabular data and hierarchical data.
  *
  * @author bbaranne
  * @version 1.0 (20050301) (yyyymmdd)
@@ -102,9 +97,9 @@ public class GanttTreeTable extends GPTreeTableBase implements CustomPropertyLis
 
     /**
      * stores the tableColum associated with there ColumnKeeper. it is used to
-     * retore the column at the same index it has been removed.
+     * restore the column at the same index it has been removed.
      */
-    private final Map<TableColumnExt, ColumnKeeper> mapTableColumnColumnKeeper = new LinkedHashMap<TableColumnExt, ColumnKeeper>();
+    private final Map<TableColumn, ColumnKeeper> mapTableColumnColumnKeeper = new LinkedHashMap<TableColumn, ColumnKeeper>();
 
     /**
      * Menu item to delete columns.
@@ -137,8 +132,6 @@ public class GanttTreeTable extends GPTreeTableBase implements CustomPropertyLis
     void setAction(Action action) {
 
         addAction(action, (KeyStroke) action.getValue(Action.ACCELERATOR_KEY));
-
-
         // Add the action to the component
     }
 
@@ -149,9 +142,9 @@ public class GanttTreeTable extends GPTreeTableBase implements CustomPropertyLis
     }
 
     private void updateDisplayedColumnsOrder() {
-        Iterator it = this.listDisplayedColumns.iterator();
+        Iterator<DisplayedColumn> it = this.listDisplayedColumns.iterator();
         while (it.hasNext()) {
-            DisplayedColumn dc = (DisplayedColumn) it.next();
+            DisplayedColumn dc = it.next();
             if (dc.isDisplayed()) {
                 String id = dc.getID();
                 String name = getNameForId(id);
@@ -175,27 +168,30 @@ public class GanttTreeTable extends GPTreeTableBase implements CustomPropertyLis
         hideAllColumns();
         this.listDisplayedColumns = l;
         Collections.sort(this.listDisplayedColumns);
-        Iterator it = this.listDisplayedColumns.iterator();
+        Iterator<DisplayedColumn> it = this.listDisplayedColumns.iterator();
         while (it.hasNext()) {
-            DisplayedColumn dc = (DisplayedColumn) it.next();
+            DisplayedColumn dc = it.next();
             String id = dc.getID();
             String name = getNameForId(id);
 
-            if (dc.displayed)
+            if (dc.displayed) {
                 displayColumn(name);
-            else
+            } else {
                 hideColumn(name);
+            }
         }
     }
 
     void reloadColumns() {
-        List columns = Collections.list(getTable().getColumnModel().getColumns());
-        for (int i=0; i<columns.size(); i++) {
-            getTable().removeColumn((TableColumn) columns.get(i));
+        List<TableColumn> columns = Collections.list(getTable().getColumnModel().getColumns());
+        for (int i = 0; i < columns.size(); i++) {
+            getTable().removeColumn(columns.get(i));
         }
-        if (myLanguageListener!=null) {
+        if (myLanguageListener != null) {
             GanttLanguage.getInstance().removeListener(myLanguageListener);
         }
+
+        // TODO Put in an Array in order to use loops to manage the TableColumns.
         final TableColumnExt tce1 = newTableColumnExt(0);
         final TableColumnExt tce2 = newTableColumnExt(1);
         final TableColumnExt tce3 = newTableColumnExt(2);
@@ -505,11 +501,11 @@ public class GanttTreeTable extends GPTreeTableBase implements CustomPropertyLis
 
         reloadColumns();
         scrollPane.getVerticalScrollBar().addAdjustmentListener(new VscrollAdjustmentListener(true) {
-			@Override
-			protected TimelineChart getChart() {
-				return myUIfacade.getGanttChart();
-			}
-		});
+            @Override
+            protected TimelineChart getChart() {
+                return myUIfacade.getGanttChart();
+            }
+        });
     }
 
     protected void onCellSelectionChanged() {
@@ -597,21 +593,16 @@ public class GanttTreeTable extends GPTreeTableBase implements CustomPropertyLis
      * charge of adding and removing the tablecolumn.
      */
 private void createPopupMenu() {
-        //Iterator it = mapTableColumnColumnKeeper.keySet().iterator();
         popupMenu = new JPopupMenu();
-        TableColumnModel tcModel = this.getTable().getColumnModel();
-        // int nbCol = tcModel.getColumnCount();
-
-        //int nbCol = mapTableColumnColumnKeeper.keySet().size();
-        for (Iterator entries = mapTableColumnColumnKeeper.entrySet().iterator(); entries.hasNext();) {
-            // TableColumn column = tcModel.getColumn(i);
-            Map.Entry nextEntry = (Entry) entries.next();
-            TableColumn column = (TableColumn) nextEntry.getKey();
+        for (Iterator<Entry<TableColumn, ColumnKeeper>> entries = mapTableColumnColumnKeeper
+                .entrySet().iterator(); entries.hasNext();) {
+            Map.Entry<TableColumn, ColumnKeeper> nextEntry = entries.next();
+            TableColumn column = nextEntry.getKey();
             JCheckBoxMenuItem jcbmi = new JCheckBoxMenuItem(column
                     .getHeaderValue().toString());
 
-            ColumnKeeper ck = (ColumnKeeper)nextEntry.getValue();
-            assert ck!=null;
+            ColumnKeeper ck = nextEntry.getValue();
+            assert ck != null;
             jcbmi.setSelected(ck.isShown);
 
             jcbmi.addActionListener(ck);
@@ -718,16 +709,16 @@ private void createPopupMenu() {
     private void displayColumn(String name) {
         int indexView = -1;
         int width = -1;
-        Iterator itDc = this.listDisplayedColumns.iterator();
+        Iterator<DisplayedColumn> itDc = this.listDisplayedColumns.iterator();
         while (itDc.hasNext()) {
-            DisplayedColumn dc = (DisplayedColumn) itDc.next();
+            DisplayedColumn dc = itDc.next();
             if (getNameForId(dc.getID()).equals(name)) {
                 indexView = dc.getOrder();
                 width = dc.getWidth();
             }
         }
 
-        Iterator<TableColumnExt> it = mapTableColumnColumnKeeper.keySet().iterator();
+        Iterator<TableColumn> it = mapTableColumnColumnKeeper.keySet().iterator();
         while (it.hasNext()) {
             TableColumn c = it.next();
             String n = (String) c.getHeaderValue();
@@ -748,7 +739,7 @@ private void createPopupMenu() {
     }
 
     private void hideColumn(String name) {
-        Iterator<TableColumnExt> it = mapTableColumnColumnKeeper.keySet().iterator();
+        Iterator<TableColumn> it = mapTableColumnColumnKeeper.keySet().iterator();
         while (it.hasNext()) {
             TableColumn c = it.next();
             String n = (String) c.getHeaderValue();
@@ -788,10 +779,11 @@ private void createPopupMenu() {
             t.setHeaderValue(newName);
             getTable().getColumnModel().addColumn(t);
             try {
-                if (clickPoint != null)
+                if (clickPoint != null) {
                     getTable().getColumnModel().moveColumn(
                             getTable().getColumnCount() - 1,
                             getTable().columnAtPoint(clickPoint));
+                }
             } catch (IllegalArgumentException e) {
                 if (!GPLogger.log(e)) {
                     e.printStackTrace(System.err);
@@ -811,19 +803,18 @@ private void createPopupMenu() {
             this.listDisplayedColumns.add(dc);
 
             if (GregorianCalendar.class
-                    .isAssignableFrom(customColumn.getType()))
+                    .isAssignableFrom(customColumn.getType())) {
                 getTable().getColumnExt(newName).setCellEditor(newDateCellEditor());
+            }
 
-            //
             JCheckBoxMenuItem jcbmi = new JCheckBoxMenuItem(newName);
             jcbmi.setSelected(true);
             ColumnKeeper ck = new ColumnKeeper(t);
             jcbmi.addActionListener(ck);
             mapTableColumnColumnKeeper.put(t, ck);
             //popupMenu.insert(jcbmi, popupMenu.getSubElements().length - 3);
-            //
-            getProject().setModified();
 
+            getProject().setModified();
         }
 
         Runnable t = new Runnable() {
@@ -833,7 +824,6 @@ private void createPopupMenu() {
             }
         };
         SwingUtilities.invokeLater(t);
-
     }
 
     /**
@@ -860,10 +850,10 @@ private void createPopupMenu() {
 
     private void deleteColumnFromUI(String name) {
         //DisplayedColumn toDel = null;
-        Iterator it = listDisplayedColumns.iterator();
+        Iterator<DisplayedColumn> it = listDisplayedColumns.iterator();
 
         while (it.hasNext()) {
-            DisplayedColumn dc = (DisplayedColumn) it.next();
+            DisplayedColumn dc = it.next();
             if (getNameForId(dc.getID()).equals(name)) {
                 it.remove();
                 break;
@@ -878,14 +868,14 @@ private void createPopupMenu() {
         getTable().columnRemoved(tcme);
         /*
          * TODO There is a problem here : I don't remove the custom column from
-         * the treetablemodel. If I remove it there will be a problem when
+         * the TreeTableModel. If I remove it there will be a problem when
          * deleting a custom column if it isn't the last created.
          */
         // TreeTableModel
         ttModel.deleteCustomColumn(name);
 
         // newBB
-        Iterator<TableColumnExt> it2 = mapTableColumnColumnKeeper.keySet().iterator();
+        Iterator<TableColumn> it2 = mapTableColumnColumnKeeper.keySet().iterator();
         while (it2.hasNext()) {
             TableColumn c = it2.next();
             String n = (String) c.getHeaderValue();
@@ -910,7 +900,7 @@ private void createPopupMenu() {
         ttModel.renameCustomColumn(name, newName);
 
         // newBB
-        Iterator<TableColumnExt> it = mapTableColumnColumnKeeper.keySet().iterator();
+        Iterator<TableColumn> it = mapTableColumnColumnKeeper.keySet().iterator();
         while (it.hasNext()) {
             TableColumn c = it.next();
             String n = (String) c.getHeaderValue();
@@ -964,11 +954,11 @@ private void createPopupMenu() {
     }
 
     /**
-     * Remove permanetly the custom column for the task <code>root</code> and
+     * Remove permanently the custom column for the task <code>root</code> and
      * all its children.
      *
      * @param facade
-     *            TaskContainmentHierarchyFacade ot retrive nested tasks.
+     *            TaskContainmentHierarchyFacade of retrieved nested tasks.
      * @param root
      *            Root task to start with.
      * @param colName
@@ -1056,18 +1046,12 @@ private void createPopupMenu() {
     }
 
     /**
-     * Returns the JTree used in the treetable.
-     *
      * @return The JTree used in the treetable.
      */
     public JTree getTree() {
         return this.getTreeTable().getTree();
     }
 
-    /**
-     *
-     * @inheritDoc
-     */
 //    public void requestFocus() {
 //        if (getDisplayColumns().isDisplayed(GanttTreeTableModel.strColName)) {
 //            int c = getTable().convertColumnIndexToView(
@@ -1081,12 +1065,12 @@ private void createPopupMenu() {
     public void centerViewOnSelectedCell() {
         int row = getTable().getSelectedRow();
         int col = getTable().getEditingColumn();
-        if (col == -1)
+        if (col == -1) {
             col = getTable().getSelectedColumn();
+        }
         Rectangle rect = getTable().getCellRect(row, col, true);
         scrollPane.getHorizontalScrollBar().scrollRectToVisible(rect);
         scrollPane.getViewport().scrollRectToVisible(rect);
-
     }
 
     public void addMouseListener(MouseListener mouseListener) {
@@ -1119,7 +1103,7 @@ private void createPopupMenu() {
      * ----- INNER CLASSES -----
      */
 
-    public class DisplayedColumnsList extends ArrayList {
+    public class DisplayedColumnsList extends ArrayList<DisplayedColumn> {
         public DisplayedColumnsList() {
             super();
         }
@@ -1134,9 +1118,9 @@ private void createPopupMenu() {
          *         displayed, <code>false</code> otherwise.
          */
         public boolean isDisplayed(String name) {
-            Iterator it = this.iterator();
+            Iterator<DisplayedColumn> it = this.iterator();
             while (it.hasNext()) {
-                DisplayedColumn dc = (DisplayedColumn) it.next();
+                DisplayedColumn dc = it.next();
                 if (getNameForId(dc.getID()).equals(name))
                     return dc.isDisplayed();
             }
@@ -1144,9 +1128,9 @@ private void createPopupMenu() {
         }
 
         public int getOrderForName(String name) {
-            Iterator it = this.iterator();
+            Iterator<DisplayedColumn> it = this.iterator();
             while (it.hasNext()) {
-                DisplayedColumn dc = (DisplayedColumn) it.next();
+                DisplayedColumn dc = it.next();
                 if (getNameForId(dc.getID()).equals(name))
                     return dc.getOrder();
             }
@@ -1154,27 +1138,26 @@ private void createPopupMenu() {
         }
 
         public String getNameForOrder(int order) {
-            Iterator it = this.iterator();
+            Iterator<DisplayedColumn> it = this.iterator();
             while (it.hasNext()) {
-                DisplayedColumn dc = (DisplayedColumn) it.next();
+                DisplayedColumn dc = it.next();
                 if (dc.getOrder() == order)
                     return getNameForId(dc.getID());
             }
             return null;
         }
 
-        public boolean add(Object o) {
-            if (o instanceof DisplayedColumn) {
-                DisplayedColumn dc1 = (DisplayedColumn) o;
-                Iterator it = this.iterator();
+        public boolean add(DisplayedColumn dc) {
+            if (dc instanceof DisplayedColumn) {
+                Iterator<DisplayedColumn> it = this.iterator();
                 while (it.hasNext()) {
-                    DisplayedColumn dc = (DisplayedColumn) it.next();
-                    if (dc.getID().equals(dc1.getID())) {
-                        this.remove(dc);
-                        return super.add(dc1);
+                    DisplayedColumn dc1 = it.next();
+                    if (dc1.getID().equals(dc.getID())) {
+                        this.remove(dc1);
+                        return super.add(dc);
                     }
                 }
-                return super.add(dc1);
+                return super.add(dc);
 
             }
             return false;
@@ -1182,16 +1165,15 @@ private void createPopupMenu() {
 
         public Object clone() {
             DisplayedColumnsList l = new DisplayedColumnsList();
-            Iterator it = this.iterator();
-            while (it.hasNext())
-                l.add(((DisplayedColumn) it.next()).clone());
-
+            Iterator<DisplayedColumn> it = this.iterator();
+            while (it.hasNext()) {
+                l.add((DisplayedColumn) it.next().clone());
+            }
             return l;
-
         }
     }
 
-    public class DisplayedColumn implements Comparable, TableHeaderUIFacade.Column {
+    public class DisplayedColumn implements Comparable<DisplayedColumn>, TableHeaderUIFacade.Column {
         private String id = null;
 
         private boolean displayed = false;
@@ -1259,13 +1241,14 @@ private void createPopupMenu() {
          *
          * @see java.lang.Comparable#compareTo(java.lang.Object)
          */
-        public int compareTo(Object o) {
-            if (o == null)
+        public int compareTo(DisplayedColumn dc) {
+            if (dc == null) {
                 return 0;
-            if (o instanceof DisplayedColumn) {
-                DisplayedColumn dc = (DisplayedColumn) o;
-                if (this.order != dc.order)
+            }
+            if (dc instanceof DisplayedColumn) {
+                if (this.order != dc.order) {
                     return this.order - dc.order;
+                }
                 return this.id.compareTo(dc.id);
             }
             return 0;
@@ -1273,7 +1256,7 @@ private void createPopupMenu() {
     }
 
     /**
-     * This actionListener manages the column to be hiden or displayed. It has a
+     * This actionListener manages the column to be hidden or displayed. It has a
      * TableColumn and hide it or display it
      *
      * @author bbaranne Mar 1, 2005
@@ -1334,9 +1317,9 @@ private void createPopupMenu() {
             String name = (String) column.getHeaderValue();
 
             String id = getIdForName(name);
-            Iterator it = listDisplayedColumns.iterator();
+            Iterator<DisplayedColumn> it = listDisplayedColumns.iterator();
             while (it.hasNext()) {
-                DisplayedColumn dc = (DisplayedColumn) it.next();
+                DisplayedColumn dc = it.next();
                 if (dc.getID().equals(id))
                     dc.setDisplayed(false);
             }
@@ -1373,9 +1356,9 @@ private void createPopupMenu() {
             String name = (String) column.getHeaderValue();
             String id = getIdForName(name);
             boolean found = false;
-            Iterator it = listDisplayedColumns.iterator();
+            Iterator<DisplayedColumn> it = listDisplayedColumns.iterator();
             while (it.hasNext()) {
-                DisplayedColumn dc = (DisplayedColumn) it.next();
+                DisplayedColumn dc = it.next();
                 if (dc.getID().equals(id)) {
                     dc.setDisplayed(true);
                     found = true;
@@ -1430,8 +1413,8 @@ private void createPopupMenu() {
         }
 
         /*
-         * Something ugly !! TODO find a means to display the popupmenu with the
-         * right UI.
+         * Something ugly !!
+         * TODO find a means to display the popupmenu with the right UI.
          */
         boolean first = false;
 
@@ -1483,18 +1466,18 @@ private void createPopupMenu() {
         public Component getTableCellEditorComponent(JTable arg0, Object arg1, boolean arg2, int arg3, int arg4) {
             final JTextField result = (JTextField) super.getTableCellEditorComponent(arg0, arg1, arg2, arg3, arg4);
             result.selectAll();
-//			result.addFocusListener(new FocusAdapter() {
-//				public void focusGained(FocusEvent arg0) {
-//					super.focusGained(arg0);
-//					((JTextComponent)result).selectAll();
-//				}
+//            result.addFocusListener(new FocusAdapter() {
+//                public void focusGained(FocusEvent arg0) {
+//                    super.focusGained(arg0);
+//                    ((JTextComponent)result).selectAll();
+//                }
 //
-//				public void focusLost(FocusEvent arg0) {
-//					// TODO Auto-generated method stub
-//					super.focusLost(arg0);
-//				}
+//                public void focusLost(FocusEvent arg0) {
+//                    // TODO Auto-generated method stub
+//                    super.focusLost(arg0);
+//                }
 //
-//			});
+//            });
 //
             return result;
         }
@@ -1512,8 +1495,8 @@ private void createPopupMenu() {
 
     /**
      * This class repaints the GraphicArea and the table every time the table
-     * model has been modified. TODO Add the refresh functionnality when
-     * available.
+     * model has been modified.
+     * TODO Add the refresh functionality when available.
      *
      * @author Benoit Baranne
      */

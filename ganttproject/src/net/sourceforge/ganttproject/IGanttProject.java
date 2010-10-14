@@ -10,7 +10,6 @@ import net.sourceforge.ganttproject.gui.UIConfiguration;
 import net.sourceforge.ganttproject.language.GanttLanguage;
 import net.sourceforge.ganttproject.resource.HumanResourceManager;
 import net.sourceforge.ganttproject.roles.RoleManager;
-import net.sourceforge.ganttproject.task.CustomColumnsManager;
 import net.sourceforge.ganttproject.task.CustomColumnsStorage;
 import net.sourceforge.ganttproject.task.Task;
 import net.sourceforge.ganttproject.task.TaskContainmentHierarchyFacade;
@@ -29,29 +28,24 @@ public interface IGanttProject {
 
     void setProjectName(String projectName);
 
-    //
     String getDescription();
 
     void setDescription(String description);
 
-    //
     String getOrganization();
 
     void setOrganization(String organization);
 
-    //
     String getWebLink();
 
     void setWebLink(String webLink);
 
-    //
     /**
      * Creates a new task and performs all necessary initialization procedures
      * such as changing properties of parent task, adjusting schedule, etc.
      */
     Task newTask();
 
-    //
     GanttLanguage getI18n();
 
     UIConfiguration getUIConfiguration();
@@ -90,5 +84,5 @@ public interface IGanttProject {
 
     CustomColumnsStorage getCustomColumnsStorage();
 
-    List/*<GanttPreviousState*/<GanttPreviousState> getBaselines();
+    List<GanttPreviousState> getBaselines();
 }

@@ -168,7 +168,7 @@ public class Shape extends JPanel implements ActionListener,
     public void fireActionEvent() {
         ActionEvent event = new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
                 "Pattern");
-        ArrayList<ActionListener> list = (ArrayList<ActionListener>) listeners.clone();
+        ArrayList<ActionListener> list = new ArrayList<ActionListener>(listeners);
         ActionListener listener;
         for (int i = 0; i < list.size(); i++) {
             listener = list.get(i);

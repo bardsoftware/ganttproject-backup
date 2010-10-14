@@ -45,15 +45,14 @@ public class TimeUnitGraph {
 
     private void registerTimeUnit(TimeUnit unit, int atomCount) {
         TimeUnit atomUnit = unit.getDirectAtomUnit();
-        List transitiveCompositions = myUnit2compositions.get(atomUnit);
+        List<Composition> transitiveCompositions = myUnit2compositions.get(atomUnit);
         if (transitiveCompositions == null) {
             throw new RuntimeException("Atom unit=" + atomUnit + " is unknown");
         }
         List<Composition> compositions = new ArrayList<Composition>(transitiveCompositions.size() + 1);
         compositions.add(new Composition(unit, 1));
         for (int i = 0; i < transitiveCompositions.size(); i++) {
-            Composition nextTransitive = (Composition) transitiveCompositions
-                    .get(i);
+            Composition nextTransitive = transitiveCompositions.get(i);
             compositions.add(new Composition(nextTransitive, atomCount));
         }
         myUnit2compositions.put(unit, compositions);
@@ -61,13 +60,13 @@ public class TimeUnitGraph {
 
     public Composition getComposition(TimeUnitImpl timeUnit, TimeUnit atomUnit) {
         Composition result = null;
-        List compositions = myUnit2compositions.get(timeUnit);
+        List<Composition> compositions = myUnit2compositions.get(timeUnit);
         if (compositions == null) {
             throw new RuntimeException("Unit=" + timeUnit
                     + " has no compositions");
         }
         for (int i = 0; i < compositions.size(); i++) {
-            Composition next = (Composition) compositions.get(i);
+            Composition next = compositions.get(i);
             if (next.myAtom.equals(atomUnit)) {
                 result = next;
                 break;

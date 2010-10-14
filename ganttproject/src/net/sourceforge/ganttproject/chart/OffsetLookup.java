@@ -50,7 +50,7 @@ class OffsetLookup {
         }
         return start;
     }
-    
+
     int[] getBounds(Date startDate, Date endDate, List<Offset> offsets) {
         int end = offsets.size()-1;
         int start = 0;

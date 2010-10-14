@@ -30,15 +30,17 @@ import net.sourceforge.ganttproject.gui.options.model.EnumerationOption;
 
 public class OverwritingMerger implements HumanResourceMerger {
     private final EnumerationOption myMergeOption;
-    private final Map/*<String,HumanResource>*/<String, HumanResource> myCache = new HashMap<String, HumanResource>();
+    private final Map<String, HumanResource> myCache = new HashMap<String, HumanResource>();
 
     public OverwritingMerger(EnumerationOption mergeOption) {
         myMergeOption = mergeOption;
     }
+
     public void merge(Map<HumanResource, HumanResource> foreign2native) {
-        for (Iterator entries = foreign2native.entrySet().iterator(); entries.hasNext();) {
-            Map.Entry entry = (Entry) entries.next();
-            merge((HumanResource)entry.getKey(), (HumanResource)entry.getValue());
+        for (Iterator<Entry<HumanResource, HumanResource>> entries = foreign2native
+                .entrySet().iterator(); entries.hasNext();) {
+            Map.Entry<HumanResource, HumanResource> entry = entries.next();
+            merge(entry.getKey(), entry.getValue());
         }
     }
 
@@ -59,6 +61,7 @@ public class OverwritingMerger implements HumanResourceMerger {
             mergeTo.addCustomProperty(nextProperty.getDefinition(), nextProperty.getValueAsString());
         }
     }
+
     public HumanResource findNative(HumanResource foreign, HumanResourceManager nativeMgr) {
         if (MergeResourcesOption.NO.equals(myMergeOption.getValue())) {
             return null;
@@ -81,6 +84,7 @@ public class OverwritingMerger implements HumanResourceMerger {
         assert false : "We should not be here. Option ID=" + myMergeOption.getValue();
         return null;
     }
+
     private void buildNameCache(HumanResourceManager nativeMgr) {
         List<ProjectResource> resources = nativeMgr.getResources();
         for (int i=0; i<resources.size(); i++) {
@@ -88,6 +92,7 @@ public class OverwritingMerger implements HumanResourceMerger {
             myCache.put(hr.getName(), hr);
         }
     }
+
     private void buildEmailCache(HumanResourceManager nativeMgr) {
         List<ProjectResource> resources = nativeMgr.getResources();
         for (int i=0; i<resources.size(); i++) {

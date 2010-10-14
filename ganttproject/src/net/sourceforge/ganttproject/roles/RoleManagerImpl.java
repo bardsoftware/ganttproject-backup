@@ -7,7 +7,6 @@ import java.util.List;
 
 import net.sourceforge.ganttproject.language.GanttLanguage;
 import net.sourceforge.ganttproject.language.GanttLanguage.Event;
-import net.sourceforge.ganttproject.roles.RoleManager.Listener;
 
 /**
  * @author athomas
@@ -18,7 +17,7 @@ public class RoleManagerImpl implements RoleManager {
     private RoleSetImpl myProjectRoleSet = new RoleSetImpl(null, this);
 
     private ArrayList<RoleSet> myRoleSets = new ArrayList<RoleSet>();
-    
+
     final private RoleSetImpl SOFTWARE_DEVELOPMENT_ROLE_SET;
     final private RoleSetImpl DEFAULT_ROLE_SET;
 
@@ -32,7 +31,7 @@ public class RoleManagerImpl implements RoleManager {
         myRoleSets.add(SOFTWARE_DEVELOPMENT_ROLE_SET);
         myProjectRoleSet.setEnabled(true);
         SOFTWARE_DEVELOPMENT_ROLE_SET.setEnabled(false);
-        
+
         GanttLanguage.getInstance().addListener(new GanttLanguage.Listener() {
             public void languageChanged(Event event) {
                 changeRoleSet();
@@ -148,7 +147,7 @@ public class RoleManagerImpl implements RoleManager {
 			next.rolesChanged(event);
 		}
 	}
-    
+
     private void createRoleSet() {
         GanttLanguage language = GanttLanguage.getInstance();
 
@@ -176,7 +175,7 @@ public class RoleManagerImpl implements RoleManager {
         DEFAULT_ROLE_SET.createRole(language.getText("resProjectManager"), 1);
         DEFAULT_ROLE_SET.setEnabled(true);
     }
-    
+
     private void changeRoleSet() {
         GanttLanguage language = GanttLanguage.getInstance();
 

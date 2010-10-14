@@ -30,12 +30,12 @@ public class PluginPreferencesImpl implements Preferences {
     private final Preferences myParent;
     private final LinkedHashMap<String, PluginPreferencesImpl> myChildren = new LinkedHashMap<String, PluginPreferencesImpl>();
     private final TreeMap<String, String> myProps = new TreeMap<String, String>();
-    
+
     public PluginPreferencesImpl(Preferences parent, String name) {
         myName = name;
         myParent = parent;
     }
-    
+
     public Preferences node(String path) {
         if (path.endsWith("/")) {
             if (!"/".equals(path)) {
@@ -136,32 +136,26 @@ public class PluginPreferencesImpl implements Preferences {
 
     public void putBoolean(String key, boolean value) {
         // TODO Auto-generated method stub
-        
     }
 
     public void putByteArray(String key, byte[] value) {
         // TODO Auto-generated method stub
-        
     }
 
     public void putDouble(String key, double value) {
         // TODO Auto-generated method stub
-        
     }
 
     public void putFloat(String key, float value) {
         // TODO Auto-generated method stub
-        
     }
 
     public void putInt(String key, int value) {
         // TODO Auto-generated method stub
-        
     }
 
     public void putLong(String key, long value) {
         // TODO Auto-generated method stub
-        
     }
 
     public void remove(String key) {

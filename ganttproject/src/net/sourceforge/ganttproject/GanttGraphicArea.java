@@ -39,30 +39,20 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.Toolkit;
-import java.awt.datatransfer.DataFlavor;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
-import java.awt.image.ComponentColorModel;
-import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferByte;
-import java.awt.image.DataBufferInt;
 import java.awt.image.RenderedImage;
-import java.awt.image.WritableRaster;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Vector;
 
 import javax.swing.Action;
 import javax.swing.Icon;
@@ -72,7 +62,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.jdesktop.jdnc.JNTreeTable;
 import org.jdesktop.swing.JXTreeTable;
 
 import net.sourceforge.ganttproject.action.GPAction;
@@ -95,7 +84,6 @@ import net.sourceforge.ganttproject.chart.item.TaskProgressChartItem;
 import net.sourceforge.ganttproject.chart.item.TaskRegularAreaChartItem;
 import net.sourceforge.ganttproject.font.Fonts;
 import net.sourceforge.ganttproject.gui.UIConfiguration;
-import net.sourceforge.ganttproject.gui.UIFacade;
 import net.sourceforge.ganttproject.gui.options.model.ChangeValueDispatcher;
 import net.sourceforge.ganttproject.gui.options.model.ChangeValueEvent;
 import net.sourceforge.ganttproject.gui.options.model.ChangeValueListener;
@@ -120,8 +108,6 @@ import net.sourceforge.ganttproject.task.event.TaskScheduleEvent;
 import net.sourceforge.ganttproject.time.TimeUnit;
 import net.sourceforge.ganttproject.time.gregorian.GregorianCalendar;
 import net.sourceforge.ganttproject.undo.GPUndoManager;
-
-import javax.swing.*;
 
 /**
  * Class for the graphic part of the soft
@@ -167,8 +153,6 @@ public class GanttGraphicArea extends ChartComponentBase implements GanttChart,
     GanttProject appli;
 
     private UIConfiguration myUIConfiguration;
-
-    private Color myProjectLevelTaskColor;
 
     private final ChartModelImpl myChartModel;
 
@@ -365,12 +349,6 @@ public class GanttGraphicArea extends ChartComponentBase implements GanttChart,
         return new RenderedGanttChartImage(myChartModel, myChartComponentImpl, GanttTree2.convertNodesListToItemList(myItemsToConsider), task_image, chartWidth, chartHeight);
     }
 
-    private GanttTree2 getTree() {
-
-        return this.tree;
-
-    }
-
     GPUndoManager getUndoManager() {
         return myUndoManager;
     }
@@ -459,18 +437,12 @@ public class GanttGraphicArea extends ChartComponentBase implements GanttChart,
 
         private final float myInitialDuration;
 
-        private GanttCalendar myInitialEnd;
-
-        private GanttCalendar myInitialStart;
-
         protected ChangeTaskBoundaryInteraction(MouseEvent initiatingEvent,
                 TaskBoundaryChartItem taskBoundary) {
             super(initiatingEvent);
             myTask = taskBoundary.getTask();
             myInitialDuration = myTask.getDuration().getLength(
                     getViewState().getBottomTimeUnit());
-            myInitialEnd = getTask().getEnd();
-            myInitialStart = getTask().getStart();
         }
 
         public void apply(MouseEvent e) {
@@ -503,7 +475,6 @@ public class GanttGraphicArea extends ChartComponentBase implements GanttChart,
                             doFinish(mutator);
                         }
                     });
-
         }
 
         private void doFinish(TaskMutator mutator) {
@@ -536,14 +507,11 @@ public class GanttGraphicArea extends ChartComponentBase implements GanttChart,
             implements MouseInteraction {
         private TaskMutator myMutator;
 
-        private GanttCalendar myInitialEnd;
-
         public ChangeTaskEndInteraction(MouseEvent initiatingEvent,
                 TaskBoundaryChartItem taskBoundary) {
             super(initiatingEvent, taskBoundary);
             setCursor(E_RESIZE_CURSOR);
             myMutator = getTask().createMutator();
-            myInitialEnd = getTask().getEnd();
         }
 
         protected void apply(float diff) {
@@ -567,8 +535,6 @@ public class GanttGraphicArea extends ChartComponentBase implements GanttChart,
 
     class ChangeTaskStartInteraction extends ChangeTaskBoundaryInteraction
             implements MouseInteraction {
-        private TaskLength myInitialLength;
-
         private TaskMutator myMutator;
 
         private GanttCalendar myInitialStart;
@@ -577,7 +543,6 @@ public class GanttGraphicArea extends ChartComponentBase implements GanttChart,
                 TaskBoundaryChartItem taskBoundary) {
             super(e, taskBoundary);
             setCursor(W_RESIZE_CURSOR);
-            myInitialLength = getTask().getDuration();
             myMutator = getTask().createMutator();
             myInitialStart = getTask().getStart();
         }
@@ -621,7 +586,6 @@ public class GanttGraphicArea extends ChartComponentBase implements GanttChart,
         public ChangeTaskProgressInteraction(MouseEvent e,
                 TaskProgressChartItem taskProgress) {
             super(e);
-            Toolkit toolkit = Toolkit.getDefaultToolkit();
             try {
                 setCursor(CHANGE_PROGRESS_CURSOR);
             } catch (Exception exept) {
@@ -763,7 +727,6 @@ public class GanttGraphicArea extends ChartComponentBase implements GanttChart,
                     repaint();
                 }
             }
-
         }
 
         public void paint(Graphics g) {
@@ -777,13 +740,10 @@ public class GanttGraphicArea extends ChartComponentBase implements GanttChart,
 
         private TaskMutator myMutator;
 
-        private GanttCalendar myInitialStart;
-
         MoveTaskInteraction(MouseEvent e, Task task) {
             super(e);
             myTask = task;
             myMutator = task.createMutator();
-            myInitialStart = myTask.getStart();
         }
 
         public void apply(MouseEvent event) {
@@ -901,7 +861,7 @@ public class GanttGraphicArea extends ChartComponentBase implements GanttChart,
     public interface ChartImplementation extends ZoomListener {
         void paintChart(Graphics g);
 
-        void paintComponent(Graphics g, List/*<Task>*/ visibleTasks);
+        void paintComponent(Graphics g, List<Task> visibleTasks);
 
         MouseListener getMouseListener();
 
@@ -970,7 +930,7 @@ public class GanttGraphicArea extends ChartComponentBase implements GanttChart,
             setActiveInteraction(new MoveTaskInteractions(e, tasks));
         }
 
-        public void paintComponent(Graphics g, List/*<Task>*/ visibleTasks) {
+        public void paintComponent(Graphics g, List<Task> visibleTasks) {
             synchronized(ChartModelBase.STATIC_MUTEX) {
                 GanttGraphicArea.super.paintComponent(g);
                 ChartModel model = myChartModel;
@@ -1005,7 +965,7 @@ public class GanttGraphicArea extends ChartComponentBase implements GanttChart,
                 model.setTopTimeUnit(getViewState().getTopTimeUnit());
                 model.setBottomTimeUnit(getViewState().getBottomTimeUnit());
                 VisibleNodesFilter visibleNodesFilter = new VisibleNodesFilter();
-                List visibleTasks = tree.getVisibleNodes(visibleNodesFilter);
+                List<Task> visibleTasks = tree.getVisibleNodes(visibleNodesFilter);
                 model.setVisibleTasks(visibleTasks);
                 model.paint(g);
                 if (getActiveInteraction() != null) {
@@ -1344,9 +1304,6 @@ public class GanttGraphicArea extends ChartComponentBase implements GanttChart,
             rightText = new Text(Text.RIGHT, taskBar);
         }
 
-        void refresh() {
-
-        }
         private void addToDispatchers() {
             List<ChangeValueDispatcher> dispatchers = Mediator.getChangeValueDispatchers();
             for (int i = 0; i < dispatchers.size(); i++) {

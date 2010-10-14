@@ -24,9 +24,7 @@ import net.sourceforge.ganttproject.task.dependency.TaskDependencyException;
  */
 public abstract class RecalculateTaskScheduleAlgorithm extends AlgorithmBase {
 
-    private Set myMarkedTasks = new HashSet();
-
-    private SortedMap<Integer, List> myDistance2dependencyList = new TreeMap<Integer, List>();
+    private SortedMap<Integer, List<TaskDependency>> myDistance2dependencyList = new TreeMap<Integer, List<TaskDependency>>();
 
     private Set<Task> myModifiedTasks = new HashSet<Task>();
 
@@ -46,7 +44,6 @@ public abstract class RecalculateTaskScheduleAlgorithm extends AlgorithmBase {
         }
         isRunning = true;
         myEntranceCounter++;
-        myMarkedTasks.clear();
         buildDistanceGraph(changedTask);
         fulfilDependencies();
         myDistance2dependencyList.clear();
@@ -65,7 +62,6 @@ public abstract class RecalculateTaskScheduleAlgorithm extends AlgorithmBase {
         }
         isRunning = true;
         myEntranceCounter++;
-        myMarkedTasks.clear();
         for (Iterator<Task> tasks = taskSet.iterator(); tasks.hasNext();) {
         	Task nextTask = tasks.next();
 	        buildDistanceGraph(nextTask);
@@ -118,15 +114,13 @@ public abstract class RecalculateTaskScheduleAlgorithm extends AlgorithmBase {
     }
 
     private void fulfilDependencies() throws TaskDependencyException {
-        // System.err.println("[RecalculateTaskSchedule]
-        // >>>fulfilDependencies()");
-        for (Iterator distances = myDistance2dependencyList.entrySet()
+        // System.err.println("[RecalculateTaskSchedule] >>>fulfilDependencies()");
+        for (Iterator<Map.Entry<Integer, List<TaskDependency>>> distances = myDistance2dependencyList.entrySet()
                 .iterator(); distances.hasNext();) {
-            Map.Entry nextEntry = (Map.Entry) distances.next();
-            List nextDependenciesList = (List) nextEntry.getValue();
+            Map.Entry<Integer, List<TaskDependency>> nextEntry = distances.next();
+            List<TaskDependency> nextDependenciesList = nextEntry.getValue();
             for (int i = 0; i < nextDependenciesList.size(); i++) {
-                TaskDependency nextDependency = (TaskDependency) nextDependenciesList
-                        .get(i);
+                TaskDependency nextDependency = nextDependenciesList.get(i);
                 TaskDependencyConstraint nextConstraint = nextDependency
                         .getConstraint();
                 TaskDependencyConstraint.Collision collision = nextConstraint
@@ -137,8 +131,7 @@ public abstract class RecalculateTaskScheduleAlgorithm extends AlgorithmBase {
                 }
             }
         }
-        // System.err.println("[RecalculateTaskSchedule]
-        // <<<fulfilDependencies()");
+        // System.err.println("[RecalculateTaskSchedule] <<<fulfilDependencies()");
     }
 
     private void fulfilConstraints(TaskDependency dependency)
@@ -150,7 +143,7 @@ public abstract class RecalculateTaskScheduleAlgorithm extends AlgorithmBase {
             ArrayList<GanttCalendar> startLaterVariations = new ArrayList<GanttCalendar>();
             ArrayList<GanttCalendar> startEarlierVariations = new ArrayList<GanttCalendar>();
             ArrayList<GanttCalendar> noVariations = new ArrayList<GanttCalendar>();
-            //
+
             for (int i = 0; i < depsAsDependant.length; i++) {
                 TaskDependency next = depsAsDependant[i];
                 TaskDependencyConstraint.Collision nextCollision = next
@@ -180,10 +173,10 @@ public abstract class RecalculateTaskScheduleAlgorithm extends AlgorithmBase {
                                 + noVariations.size()
                                 + " constraints which don't allow for task start variation");
             }
-            //
+
             Collections.sort(startEarlierVariations, GanttCalendar.COMPARATOR);
             Collections.sort(startLaterVariations, GanttCalendar.COMPARATOR);
-            //
+
             GanttCalendar solution;
             GanttCalendar earliestStart = (GanttCalendar) (startEarlierVariations
                     .size() == 0 ? null : startEarlierVariations.get(0));
@@ -217,7 +210,7 @@ public abstract class RecalculateTaskScheduleAlgorithm extends AlgorithmBase {
             } else {
                 solution = latestStart;
             }
-            //
+
             modifyTaskStart(dependant, solution);
         }
     }

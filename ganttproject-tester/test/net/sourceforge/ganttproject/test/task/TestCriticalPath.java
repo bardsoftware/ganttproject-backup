@@ -39,13 +39,13 @@ public class TestCriticalPath extends TaskTestCase {
         createDependency(t3, t2);
         createDependency(t2, t1);
         mgr.getAlgorithmCollection().getRecalculateTaskScheduleAlgorithm().run();
-        Set criticalTasks = new HashSet(Arrays.asList(
+        Set<Task> criticalTasks = new HashSet<Task>(Arrays.asList(
                 mgr.getAlgorithmCollection().getCriticalPathAlgorithm().getCriticalTasks()));
         assertTrue(criticalTasks.contains(t1));
         assertTrue(criticalTasks.contains(t2));
         assertTrue(criticalTasks.contains(t3));
     }
-    
+
     public void testLongerPathIsCritical() throws Exception {
         TaskManager mgr = getTaskManager();
         Task t1 = createTask();
@@ -59,7 +59,7 @@ public class TestCriticalPath extends TaskTestCase {
         createDependency(t4, t5);
         createDependency(t5, t1);
         mgr.getAlgorithmCollection().getRecalculateTaskScheduleAlgorithm().run();
-        Set criticalTasks = new HashSet(Arrays.asList(
+        Set<Task> criticalTasks = new HashSet<Task>(Arrays.asList(
                 mgr.getAlgorithmCollection().getCriticalPathAlgorithm().getCriticalTasks()));
         assertTrue(criticalTasks.contains(t1));
         assertTrue(criticalTasks.contains(t2));
@@ -67,7 +67,7 @@ public class TestCriticalPath extends TaskTestCase {
         assertTrue(criticalTasks.contains(t4));
         assertFalse(criticalTasks.contains(t5));        
     }
-    
+
     public void testEqualPathsAreBothCritical() throws Exception {
         TaskManager mgr = getTaskManager();
         Task t1 = createTask();
@@ -80,14 +80,14 @@ public class TestCriticalPath extends TaskTestCase {
         createDependency(t3, t1);
 
         mgr.getAlgorithmCollection().getRecalculateTaskScheduleAlgorithm().run();
-        Set criticalTasks = new HashSet(Arrays.asList(
+        Set<Task> criticalTasks = new HashSet<Task>(Arrays.asList(
                 mgr.getAlgorithmCollection().getCriticalPathAlgorithm().getCriticalTasks()));
         assertTrue(criticalTasks.contains(t1));
         assertTrue(criticalTasks.contains(t2));
         assertTrue(criticalTasks.contains(t3));
         assertTrue(criticalTasks.contains(t4));        
     }
-    
+
     public void testUnlinkedTaskICriticalIfEndsAtTheProjectEnd() throws Exception {
         TaskManager mgr = getTaskManager();
         Task t1 = createTask();
@@ -101,13 +101,13 @@ public class TestCriticalPath extends TaskTestCase {
         TaskMutator mu1 = u1.createMutatorFixingDuration();
         mu1.setStart(t3.getStart());
         mu1.commit();
-        
+
         Task u2 = createTask();
         TaskMutator mu2 = u2.createMutatorFixingDuration();
         mu2.setStart(t2.getStart());
         mu2.commit();
-        
-        Set criticalTasks = new HashSet(Arrays.asList(
+
+        Set<Task> criticalTasks = new HashSet<Task>(Arrays.asList(
                 mgr.getAlgorithmCollection().getCriticalPathAlgorithm().getCriticalTasks()));
         assertTrue(criticalTasks.contains(t1));
         assertTrue(criticalTasks.contains(t2));
@@ -115,7 +115,7 @@ public class TestCriticalPath extends TaskTestCase {
         assertTrue(criticalTasks.contains(u1));
         assertFalse(criticalTasks.contains(u2));
     }
-    
+
     public void testCriticalPathInsideCriticalSupertask() throws Exception {
         Task t1 = createTask();
         Task t2 = createTask();
@@ -134,16 +134,16 @@ public class TestCriticalPath extends TaskTestCase {
         mgr.getAlgorithmCollection().getAdjustTaskBoundsAlgorithm().run(t2);
         mgr.getAlgorithmCollection().getRecalculateTaskScheduleAlgorithm().run();
 
-        Set criticalTasks = new HashSet(Arrays.asList(
+        Set<Task> criticalTasks = new HashSet<Task>(Arrays.asList(
                 mgr.getAlgorithmCollection().getCriticalPathAlgorithm().getCriticalTasks()));
         assertTrue(criticalTasks.contains(t1));
         assertTrue(criticalTasks.contains(t2));
         assertTrue(criticalTasks.contains(t3));
-        
+
         assertTrue(criticalTasks.contains(n1));
         assertTrue(criticalTasks.contains(n2));
     }
-    
+
     public void testLag() throws Exception {
         TaskManager mgr = getTaskManager();
         Task t1 = createTask();
@@ -152,15 +152,15 @@ public class TestCriticalPath extends TaskTestCase {
         createDependency(t3, t2);
         TaskDependency dep = createDependency(t2, t1);
         dep.setDifference(2);
-        
+
         mgr.getAlgorithmCollection().getRecalculateTaskScheduleAlgorithm().run();
-        Set criticalTasks = new HashSet(Arrays.asList(
+        Set<Task> criticalTasks = new HashSet<Task>(Arrays.asList(
                 mgr.getAlgorithmCollection().getCriticalPathAlgorithm().getCriticalTasks()));
         assertTrue(criticalTasks.contains(t1));
         assertTrue(criticalTasks.contains(t2));
         assertTrue(criticalTasks.contains(t3));        
     }
-    
+
     public void testTaskBeforeNonCriticalIsNonCritical() throws Exception {
         TaskManager mgr = getTaskManager();
         Task t1 = createTask();
@@ -176,7 +176,7 @@ public class TestCriticalPath extends TaskTestCase {
         createDependency(t6, t2);
 
         mgr.getAlgorithmCollection().getRecalculateTaskScheduleAlgorithm().run();
-        Set criticalTasks = new HashSet(Arrays.asList(
+        Set<Task> criticalTasks = new HashSet<Task>(Arrays.asList(
                 mgr.getAlgorithmCollection().getCriticalPathAlgorithm().getCriticalTasks()));
         assertTrue(criticalTasks.contains(t3));
         assertTrue(criticalTasks.contains(t4));
@@ -185,12 +185,12 @@ public class TestCriticalPath extends TaskTestCase {
         assertFalse(criticalTasks.contains(t1));        
         assertFalse(criticalTasks.contains(t2));        
     }
-    
+
     class LaggedDependencyChainCriticalPathTester {
         private final Task t1;
         private final Task t2;
         private final Task t3;
-        private final HashSet criticalTasks;
+        private final HashSet<Task> criticalTasks;
 
         public LaggedDependencyChainCriticalPathTester(TaskDependencyConstraint constraint) throws Exception {
             TaskManager mgr = getTaskManager();
@@ -199,39 +199,40 @@ public class TestCriticalPath extends TaskTestCase {
             t3 = createTask();
             TaskDependency dep_3_2 = createDependency(t3, t2);
             dep_3_2.setConstraint((TaskDependencyConstraint) constraint.clone());
-            
+
             TaskDependency dep_2_1 = createDependency(t2, t1);
             dep_2_1.setConstraint((TaskDependencyConstraint) constraint.clone());
             dep_2_1.setDifference(2);
-            
+
             mgr.getAlgorithmCollection().getRecalculateTaskScheduleAlgorithm().run();
-            criticalTasks = new HashSet(Arrays.asList(
+            criticalTasks = new HashSet<Task>(Arrays.asList(
                     mgr.getAlgorithmCollection().getCriticalPathAlgorithm().getCriticalTasks()));
         }
-        
+
         public void runDefaultAsserts() {
             assertTrue(criticalTasks.contains(t1));
             assertTrue(criticalTasks.contains(t2));
             assertTrue(criticalTasks.contains(t3));                            
         }
     }
-    
+
     public void testFinishFinishConstraint() throws Exception {
         LaggedDependencyChainCriticalPathTester tester = 
             new LaggedDependencyChainCriticalPathTester(new FinishFinishConstraintImpl());
         tester.runDefaultAsserts();
     }
+
     public void testStartStartConstraint() throws Exception {
         LaggedDependencyChainCriticalPathTester tester = 
             new LaggedDependencyChainCriticalPathTester(new StartStartConstraintImpl());
         tester.runDefaultAsserts();
     }
+
     public void testStartFinishConstraint() throws Exception {
         LaggedDependencyChainCriticalPathTester tester = 
             new LaggedDependencyChainCriticalPathTester(new StartStartConstraintImpl());
         assertTrue(tester.criticalTasks.contains(tester.t1));
         assertTrue(tester.criticalTasks.contains(tester.t2));
     }
-    
-    
+
 }

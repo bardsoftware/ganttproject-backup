@@ -68,7 +68,7 @@ public class CharSetMap
     /**
      * A common charset mapper for languages.
      */
-    private static HashMap commonMapper = new HashMap();
+    private static HashMap<String, String> commonMapper = new HashMap<String, String>();
     static
     {
         commonMapper.put("ar","ISO-8859-6");
@@ -226,9 +226,9 @@ public class CharSetMap
     }
 
     /**
-     * Contructs a charset map from properties.
+     * Constructs a charset map from properties.
      *
-     * @param props charset mapping propeties.
+     * @param props charset mapping properties.
      */
     public CharSetMap(Properties props)
     {
@@ -237,7 +237,7 @@ public class CharSetMap
     }
 
     /**
-     * Contructs a charset map read from a stream.
+     * Constructs a charset map read from a stream.
      *
      * @param input an input stream.
      * @throws IOException for an incorrect stream.
@@ -250,7 +250,7 @@ public class CharSetMap
     }
 
     /**
-     * Contructs a charset map read from a property file.
+     * Constructs a charset map read from a property file.
      *
      * @param file a property file.
      * @throws IOException for an incorrect property file.
@@ -263,7 +263,7 @@ public class CharSetMap
     }
 
     /**
-     * Contructs a charset map read from a property file path.
+     * Constructs a charset map read from a property file path.
      *
      * @param path a property file path.
      * @throws IOException for an incorrect property file.

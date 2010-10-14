@@ -13,7 +13,6 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 
-import net.sourceforge.ganttproject.GanttPreviousState;
 import net.sourceforge.ganttproject.GanttPreviousStateTask;
 import net.sourceforge.ganttproject.GanttProject;
 import net.sourceforge.ganttproject.gui.DialogAligner;
@@ -72,7 +71,7 @@ public class GanttDialogCompareToPreviousState extends JDialog implements
                 GanttDialogInfo gdi = new GanttDialogInfo(myProject,
                         GanttDialogInfo.WARNING, GanttDialogInfo.YES_NO_OPTION,
                         lang.getText("msg25"), lang.getText("warning"));
-                gdi.show();
+                gdi.setVisible(true);
                 if (gdi.res == GanttDialogInfo.YES) {
                     compareToPreviousBean.removeItem();
 

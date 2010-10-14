@@ -16,7 +16,7 @@ import net.sourceforge.ganttproject.Mediator;
 import org.eclipse.core.runtime.Platform;
 
 public class CommandLineExportApplication {
-    private final Map myFlag2exporter = new HashMap();
+    private final Map<String, Exporter> myFlag2exporter = new HashMap<String, Exporter>();
 
     public CommandLineExportApplication() {
         Exporter[] exporters = Mediator.getPluginManager().getExporters();
@@ -27,21 +27,22 @@ public class CommandLineExportApplication {
                 myFlag2exporter.put("-" + nextExtensions.get(j), next);
             }
         }
-
     }
-    public Collection getCommandLineFlags() {
+
+    public Collection<String> getCommandLineFlags() {
         return myFlag2exporter.keySet();
     }
-    public boolean export(Map<String, List> parsedArgs) {
+
+    public boolean export(Map<String, List<String>> parsedArgs) {
         if (parsedArgs.isEmpty()) {
             return false;
         }
 
-        List values = new ArrayList();
+        List<String> values = new ArrayList<String>();
         Exporter exporter = findExporter(parsedArgs, values);
         if (exporter!=null && values.size()>0) {
             GanttProject project = new GanttProject(false);
-            String inputFileName = String.valueOf(values.get(0));
+            String inputFileName = values.get(0);
 
             project.openStartupDocument(inputFileName);
             ConsoleUIFacade consoleUI = new ConsoleUIFacade(project.getUIFacade());
@@ -58,7 +59,7 @@ public class CommandLineExportApplication {
             Platform.getJobManager().setProgressProvider(null);
             File outputFile;
             if (values.size()>1) {
-                outputFile = new File(String.valueOf(values.get(1)));
+                outputFile = new File(values.get(1));
             }
             else {
                 outputFile = FileChooserPage.proposeOutputFile(project, exporter);
@@ -83,14 +84,14 @@ public class CommandLineExportApplication {
         return false;
     }
 
-    private Exporter findExporter(Map<String, List> args, List outputParams) {
-        for (Iterator exporters = myFlag2exporter.entrySet().iterator();
-             exporters.hasNext();) {
-            Map.Entry nextEntry = (Entry) exporters.next();
-            String flag = (String) nextEntry.getKey();
+    private Exporter findExporter(Map<String, List<String>> args, List<String> outputParams) {
+        for (Iterator<Entry<String, Exporter>> exporters = myFlag2exporter
+                .entrySet().iterator(); exporters.hasNext();) {
+            Map.Entry<String, Exporter> nextEntry = exporters.next();
+            String flag = nextEntry.getKey();
             if (args.containsKey(flag)) {
                 outputParams.addAll(args.get(flag));
-                return (Exporter) nextEntry.getValue();
+                return nextEntry.getValue();
             }
         }
         return null;

@@ -3,9 +3,7 @@ package net.sourceforge.ganttproject.gui.options.model;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public abstract class GPAbstractOption<T> implements GPOption, ChangeValueDispatcher {
     private final String myID;
@@ -86,7 +84,6 @@ public abstract class GPAbstractOption<T> implements GPOption, ChangeValueDispat
     public boolean isWritable() {
         return isWritable;
     }
-
 
     public void setWritable(boolean isWritable) {
         this.isWritable = isWritable;

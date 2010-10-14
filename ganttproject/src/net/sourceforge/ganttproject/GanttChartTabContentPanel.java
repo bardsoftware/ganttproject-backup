@@ -21,7 +21,6 @@ import net.sourceforge.ganttproject.chart.Chart;
 import net.sourceforge.ganttproject.gui.TaskTreeUIFacade;
 import net.sourceforge.ganttproject.gui.TestGanttRolloverButton;
 import net.sourceforge.ganttproject.gui.UIFacade;
-import net.sourceforge.ganttproject.task.TaskSelectionManager;
 
 import org.eclipse.core.runtime.IAdaptable;
 

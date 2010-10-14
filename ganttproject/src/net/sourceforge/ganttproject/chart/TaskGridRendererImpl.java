@@ -6,8 +6,7 @@ package net.sourceforge.ganttproject.chart;
 import java.awt.Color;
 import java.util.List;
 
-import net.sourceforge.ganttproject.time.TimeFrame;
-import net.sourceforge.ganttproject.time.TimeUnit;
+import net.sourceforge.ganttproject.task.Task;
 
 /**
  * @author bard
@@ -27,8 +26,7 @@ public class TaskGridRendererImpl extends ChartRendererBase {
 
         int rowHeight = myModel.getRowHeight();
         int ypos = rowHeight;
-        List/* <Task> */tasks = ((ChartModelImpl) getChartModel())
-                .getVisibleTasks();
+        List<Task> tasks = ((ChartModelImpl) getChartModel()).getVisibleTasks();
         for (int i = 0; i < tasks.size(); i++) {
             GraphicPrimitiveContainer.Line nextLine = getPrimitiveContainer()
                     .createLine(0, ypos,

@@ -2,10 +2,6 @@ package net.sourceforge.ganttproject.chart;
 
 import java.awt.Color;
 
-import net.sourceforge.ganttproject.time.TimeFrame;
-import net.sourceforge.ganttproject.time.TimeUnit;
-
-
 public class BackgroundRendererImpl extends ChartRendererBase {
 
     public BackgroundRendererImpl() {

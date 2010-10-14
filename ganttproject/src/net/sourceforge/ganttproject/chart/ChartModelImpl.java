@@ -6,7 +6,6 @@
 package net.sourceforge.ganttproject.chart;
 
 import java.awt.Color;
-import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -45,9 +44,9 @@ public class ChartModelImpl extends ChartModelBase implements ChartModel {
 
     private TaskContainmentHierarchyFacade myTaskContainment;
 
-    private final TaskGridRendererImpl myTaskGridRendererImpl;
+    // private final TaskGridRendererImpl myTaskGridRendererImpl;
 
-    //private final ResourcesRendererImpl myResourcesRendererImpl;
+    // private final ResourcesRendererImpl myResourcesRendererImpl;
 
     // private final TaskProgressRendererImpl myTaskProgressRendererImpl;
     private TaskManager taskManager;
@@ -70,7 +69,7 @@ public class ChartModelImpl extends ChartModelBase implements ChartModel {
 //
     private final ChartOptionGroup myStateDiffOptions;
 
-    private Set myHiddenTasks;
+    private Set<Task> myHiddenTasks;
 
     public static class TuningOptions {
         private final boolean renderProgress;
@@ -91,9 +90,11 @@ public class ChartModelImpl extends ChartModelBase implements ChartModel {
         super(taskManager, timeUnitStack, projectConfig);
         this.taskManager = taskManager;
         myTaskRendererImpl = new TaskRendererImpl2(this);
-        myTaskGridRendererImpl = new TaskGridRendererImpl(this);
         addRenderer(myTaskRendererImpl);
-        //addRenderer(myTaskGridRendererImpl);
+
+        // myTaskGridRendererImpl = new TaskGridRendererImpl(this);
+        // addRenderer(myTaskGridRendererImpl);
+
         //myResourcesRendererImpl = new ResourcesRendererImpl(this);
         // myTaskProgressRendererImpl = new TaskProgressRendererImpl(this);
         //myTimeUnitVisitors.add(myTaskGridRendererImpl);
@@ -188,11 +189,11 @@ public class ChartModelImpl extends ChartModelBase implements ChartModel {
         // myTimeUnitVisitors.add(myTaskProgressRendererImpl);
     }
 
-    public void setVisibleTasks(java.util.List/* <Task> */visibleTasks) {
+    public void setVisibleTasks(List<Task> visibleTasks) {
         myVisibleTasks = visibleTasks;
     }
 
-    public void setExplicitlyHiddenTasks(Set hiddenTasks) {
+    public void setExplicitlyHiddenTasks(Set<Task> hiddenTasks) {
         myHiddenTasks = hiddenTasks;
     }
 
@@ -305,6 +306,7 @@ public class ChartModelImpl extends ChartModelBase implements ChartModel {
      *
      * @see net.sourceforge.ganttproject.chart.ChartModel#setTaskContainment(net.sourceforge.ganttproject.task.TaskContainmentHierarchyFacade)
      */
+    // TODO myTaskContainment is never used... remove from ChartModel interface??
     public void setTaskContainment(
             TaskContainmentHierarchyFacade taskContainment) {
         myTaskContainment = taskContainment;

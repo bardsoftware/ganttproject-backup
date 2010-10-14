@@ -2,7 +2,7 @@ package net.sourceforge.ganttproject.gui.options.model;
 
 import java.util.Date;
 
-public class DefaultDateOption extends GPAbstractOption implements DateOption {
+public class DefaultDateOption extends GPAbstractOption<Date> implements DateOption {
 
     private Date myLockedValue;
     private Date myValue;
@@ -32,7 +32,6 @@ public class DefaultDateOption extends GPAbstractOption implements DateOption {
 
     public void loadPersistentValue(String value) {
         // TODO Auto-generated method stub
-
     }
 
 }

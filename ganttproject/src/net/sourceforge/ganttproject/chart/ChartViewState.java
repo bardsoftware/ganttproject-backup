@@ -1,15 +1,9 @@
 package net.sourceforge.ganttproject.chart;
 
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.EventListener;
-import java.util.EventObject;
-import java.util.List;
 
 import javax.swing.SwingUtilities;
 
-import net.sourceforge.ganttproject.IGanttProject;
 import net.sourceforge.ganttproject.Mediator;
 import net.sourceforge.ganttproject.gui.UIFacade;
 import net.sourceforge.ganttproject.gui.scrolling.ScrollingListener;
@@ -17,29 +11,20 @@ import net.sourceforge.ganttproject.gui.zoom.ZoomEvent;
 import net.sourceforge.ganttproject.gui.zoom.ZoomListener;
 import net.sourceforge.ganttproject.gui.zoom.ZoomManager;
 import net.sourceforge.ganttproject.gui.zoom.ZoomManager.ZoomState;
-import net.sourceforge.ganttproject.time.TimeFrame;
 import net.sourceforge.ganttproject.time.TimeUnit;
-import net.sourceforge.ganttproject.time.TimeUnitStack;
 
 /**
  * Created by IntelliJ IDEA. User: bard
  */
 public class ChartViewState implements ScrollingListener, ZoomListener {
-    private Date myStartDate;
-
-    private final TimeUnitStack myTimeUnitStack;
-
     private ZoomState myCurrentZoomState;
     private UIFacade myUIFacade;
 
     private final TimelineChart myChart;
 
     public ChartViewState(TimelineChart chart, UIFacade uiFacade) {
-        final IGanttProject project = chart.getProject();
         myChart = chart;
         myUIFacade = uiFacade;
-        myTimeUnitStack = project.getTimeUnitStack();
-        myStartDate = Calendar.getInstance().getTime();
         uiFacade.getZoomManager().addZoomListener(this);
     }
 

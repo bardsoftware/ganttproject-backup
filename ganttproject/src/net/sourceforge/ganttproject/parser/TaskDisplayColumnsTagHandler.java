@@ -69,7 +69,7 @@ public class TaskDisplayColumnsTagHandler implements TagHandler,
         int width = widthStr==null ? -1 : Integer.parseInt(widthStr); 
         myBuffer.add(id, order, width);
     }    
-    
+
     private static class TaskFieldImpl implements TableHeaderUIFacade.Column {
     	private final String myID;
 		private final int myOrder;
@@ -96,9 +96,9 @@ public class TaskDisplayColumnsTagHandler implements TagHandler,
 		}
 		public String getName() {
 			return null;
-		}
-    	
+		}    	
     }
+
     private static class VisibleFieldsImpl implements TableHeaderUIFacade {
 		private List<TaskFieldImpl> myFields = new ArrayList<TaskFieldImpl>();
 		public void add(String name, int order, int width) {
@@ -117,5 +117,4 @@ public class TaskDisplayColumnsTagHandler implements TagHandler,
 			throw new UnsupportedOperationException();
 		}
 	}
-    
 }

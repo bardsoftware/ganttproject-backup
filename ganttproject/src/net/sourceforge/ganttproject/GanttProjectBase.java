@@ -86,7 +86,7 @@ abstract class GanttProjectBase extends JFrame implements IGanttProject, UIFacad
     private final TimeUnitStack myTimeUnitStack;
     private final ProjectUIFacadeImpl myProjectUIFacade;
     private final DocumentManager myDocumentManager;
-    /** The tabbed pane with the differents parts of the project */
+    /** The tabbed pane with the different parts of the project */
     private GanttTabbedPane myTabPane;
     private final GPUndoManager myUndoManager;
     private final CustomColumnsManager myTaskCustomColumnManager;
@@ -246,10 +246,10 @@ abstract class GanttProjectBase extends JFrame implements IGanttProject, UIFacad
 
                 public void stateChanged(ChangeEvent e) {
                     GPViewImpl selectedView = (GPViewImpl) myTabs.getSelectedUserObject();
-                    if (mySelectedView==selectedView) {
+                    if (mySelectedView == selectedView) {
                         return;
                     }
-                    if (mySelectedView!=null) {
+                    if (mySelectedView != null) {
                         mySelectedView.setActive(false);
                     }
                     mySelectedView = selectedView;
@@ -411,9 +411,7 @@ abstract class GanttProjectBase extends JFrame implements IGanttProject, UIFacad
 
         private GanttTree2 myTreeView;
 
-        // TODO: 1.12 refactor and get rid of using concrete implementations of
-        // gantt view model
-        // and tree view
+        // TODO: 1.12 refactor and get rid of using concrete implementations of gantt view model and tree view
         public RowHeightAligner(GanttTree2 treeView,
                 ChartModelImpl ganttViewModel) {
             myGanttViewModel = ganttViewModel;

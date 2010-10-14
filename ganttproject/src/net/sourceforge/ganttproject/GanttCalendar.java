@@ -293,10 +293,10 @@ public class GanttCalendar extends GregorianCalendar implements Serializable
     }
 
 
-    public static Comparator<Object> COMPARATOR = new Comparator() {
-        public int compare(Object o1, Object o2) {
+    public static Comparator<GanttCalendar> COMPARATOR = new Comparator<GanttCalendar>() {
+        public int compare(GanttCalendar o1, GanttCalendar o2) {
             assert o1 instanceof GanttCalendar && o2 instanceof GanttCalendar;
-            return ((GanttCalendar)o1).compareTo((GanttCalendar) o2);
+            return o1.compareTo(o2);
         }
     };
 }

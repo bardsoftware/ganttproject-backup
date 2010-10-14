@@ -62,7 +62,6 @@ public class PublicHolidayDialogAction extends AbstractAction {
                         }
                         myUIFacade.getActiveChart().reset();
                     }
-            
                 }, 
                 new CancelAction() {
                     public void actionPerformed(ActionEvent e) {
@@ -70,7 +69,7 @@ public class PublicHolidayDialogAction extends AbstractAction {
                 }
         });
     }
-    
+
     private void updateHolidays(List<GanttCalendar> holidays) {
         myProject.getActiveCalendar().getPublicHolidays().clear();
         for (int i = 0; i < holidays.size(); i++) {
@@ -78,6 +77,5 @@ public class PublicHolidayDialogAction extends AbstractAction {
                     holidays.get(i)
                             .getTime());
         }
-        
     }
 }

@@ -64,7 +64,7 @@ public class GanttDialogSaveAsPreviousState extends JDialog implements
                                 previousStateBean.getName() + "\n"
                                         + lang.getText("msg18"), lang
                                         .getText("warning"));
-                        gdi.show();
+                        gdi.setVisible(true);
                         if (gdi.res == GanttDialogInfo.YES)
                             myProject.getPreviouStates().remove(i);
                         else

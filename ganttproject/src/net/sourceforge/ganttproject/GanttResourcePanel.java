@@ -18,8 +18,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -31,7 +29,6 @@ import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeEvent;
@@ -371,7 +368,7 @@ public class GanttResourcePanel extends JPanel implements ResourceView,
                     GanttDialogInfo.YES_OPTION, GanttLanguage.getInstance()
                             .getText("msg26"),
                     GanttLanguage.getInstance().getText("sendMail"));
-            gdi.show();
+            gdi.setVisible(true);
         }
     }
 
@@ -444,12 +441,10 @@ public class GanttResourcePanel extends JPanel implements ResourceView,
 
     public void projectModified() {
         // TODO Auto-generated method stub
-
     }
 
     public void projectSaved() {
         // TODO Auto-generated method stub
-
     }
 
     public void projectClosed() {

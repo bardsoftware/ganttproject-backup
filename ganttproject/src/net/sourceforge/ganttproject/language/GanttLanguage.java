@@ -68,7 +68,7 @@ public class GanttLanguage {
 
     Locale currentLocale = null;
     CharSetMap myCharSetMap;
-    
+
     ResourceBundle i18n = null;
 
     SimpleDateFormat currentDateFormat = null;
@@ -99,7 +99,6 @@ public class GanttLanguage {
         Locale.setDefault(locale);
         int defaultTimezoneOffset = TimeZone.getDefault().getRawOffset() + TimeZone.getDefault().getDSTSavings();
 
-        
         TimeZone utc = TimeZone.getTimeZone("UTC");
         utc.setRawOffset(defaultTimezoneOffset);
         TimeZone.setDefault(utc);
@@ -123,7 +122,7 @@ public class GanttLanguage {
         String resourceBase = System.getProperty(
                 "org.ganttproject.resourcebase", "language/i18n");
         i18n = ResourceBundle.getBundle(resourceBase, currentLocale);
-        
+
         fireLanguageChanged();
     }
 

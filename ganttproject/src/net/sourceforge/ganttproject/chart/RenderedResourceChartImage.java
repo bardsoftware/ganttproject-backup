@@ -13,7 +13,6 @@ public class RenderedResourceChartImage extends RenderedChartImage {
             AbstractChartImplementation chartImplementation, BufferedImage resourceTreeImage, int chartWidth, int chartHeight) {
         super(chartModel, resourceTreeImage, chartWidth, chartHeight);
         myChartImplementation = chartImplementation;
-        // TODO Auto-generated constructor stub
     }
 
     protected void paintChart(Graphics g) {

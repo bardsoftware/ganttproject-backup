@@ -524,6 +524,7 @@ public class TaskRendererImpl2 extends ChartRendererBase {
 
         final PointVector myDependeeVector;
 
+        // FIXME dependeePrimitive is not used... remove argument?
         public DependencyDrawData(TaskDependency dependency,
                 GraphicPrimitiveContainer.GraphicPrimitive dependantPrimitive,
                 GraphicPrimitiveContainer.GraphicPrimitive dependeePrimitive,

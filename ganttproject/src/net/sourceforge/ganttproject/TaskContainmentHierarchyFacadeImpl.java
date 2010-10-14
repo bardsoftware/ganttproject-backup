@@ -31,13 +31,9 @@ class TaskContainmentHierarchyFacadeImpl implements
     private GanttTree2 myTree;
 
     public TaskContainmentHierarchyFacadeImpl(GanttTree2 tree) {
-        ArrayList/*<DefaultMutableTreeNode>*/<Object> allTasks = tree.getAllTasks();
-        // comboBox.addItem("no set");
-        // for (int i = 0; i < allTasks.size(); i++) {
-        // DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)
-        // allTasks.get(i);
-        for (int i=0; i<allTasks.size(); i++) {
-            DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)allTasks.get(i);
+        ArrayList<TaskNode> allTasks = tree.getAllTasks();
+        for (int i = 0; i < allTasks.size(); i++) {
+            TaskNode treeNode = allTasks.get(i);
             Task task = (Task) treeNode.getUserObject();
             if (treeNode.isRoot()) {
                 myRootTask = task;
@@ -53,35 +49,35 @@ class TaskContainmentHierarchyFacadeImpl implements
         DefaultMutableTreeNode treeNode = myTask2treeNode
                 .get(container);
         if (treeNode != null) {
-            ArrayList list = new ArrayList();
+            ArrayList<Task> list = new ArrayList<Task>();
             for (Enumeration children = treeNode.children(); children
                     .hasMoreElements();) {
                 DefaultMutableTreeNode next = (DefaultMutableTreeNode) children
                         .nextElement();
-                if (next instanceof TaskNode)
-                    list.add(next.getUserObject());
+                if (next instanceof TaskNode) {
+                    list.add((Task) next.getUserObject());
+                }
             }
-            result = (Task[]) list.toArray(new Task[0]);
+            result = list.toArray(new Task[0]);
         }
         return result == null ? new Task[0] : result;
     }
 
-
     public Task[] getDeepNestedTasks(Task container) {
-        ArrayList result = new ArrayList();
-        DefaultMutableTreeNode treeNode = myTask2treeNode.get(container);
-        if (treeNode != null) {
-            for (Enumeration<TreeNode> subtree = treeNode.preorderEnumeration(); subtree.hasMoreElements();) {
+        ArrayList<Task> result = new ArrayList<Task>();
+        DefaultMutableTreeNode treeNodes = myTask2treeNode.get(container);
+        if (treeNodes != null) {
+            for (Enumeration subtree = treeNodes.preorderEnumeration(); subtree.hasMoreElements();) {
                 DefaultMutableTreeNode curNode = (DefaultMutableTreeNode) subtree.nextElement();
                 assert curNode.getUserObject() instanceof Task;
-                result.add(curNode.getUserObject());
+                result.add((Task) curNode.getUserObject());
             }
 
             // We remove the first task which is == container
             assert result.size() > 0;
             result.remove(0);
         }
-        return (Task[]) result.toArray(new Task[result.size()]);
+        return result.toArray(new Task[result.size()]);
     }
 
     /**
@@ -178,10 +174,6 @@ class TaskContainmentHierarchyFacadeImpl implements
     }
 
     public int compareDocumentOrder(Task task1, Task task2) {
-//        DefaultMutableTreeNode node1 = (DefaultMutableTreeNode) myTask2treeNode.get(task1);
-//        DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) myTask2treeNode.get(task2);
-//        int row1 = myTree.getJTree().getRowForPath(new TreePath(node1.getPath()));
-//        int row2 = myTree.getJTree().getRowForPath(new TreePath(node2.getPath()));
         Integer index1 = myTask2index.get(task1);
         Integer index2 = myTask2index.get(task2);
         return index1.intValue() - index2.intValue();

@@ -18,7 +18,6 @@
 package net.sourceforge.ganttproject;
 
 import java.io.Serializable;
-
 import net.sourceforge.ganttproject.task.TaskImpl;
 import net.sourceforge.ganttproject.task.TaskManager;
 import net.sourceforge.ganttproject.task.TaskMutator;
@@ -78,7 +77,7 @@ implements Serializable {
         return new GanttTask(this);
     }
 
-    /** @deprecated Use TimeUnit class istead and method getDuration() */ 
+    /** @deprecated Use TimeUnit class instead and method getDuration() */ 
     public int getLength() {
 
         return (int) getDuration().getLength();

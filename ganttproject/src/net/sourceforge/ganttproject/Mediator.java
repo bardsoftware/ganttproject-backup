@@ -6,10 +6,6 @@ import java.util.List;
 import net.sourceforge.ganttproject.delay.DelayManager;
 import net.sourceforge.ganttproject.gui.options.model.ChangeValueDispatcher;
 import net.sourceforge.ganttproject.plugins.PluginManager;
-import net.sourceforge.ganttproject.roles.RoleManager;
-import net.sourceforge.ganttproject.task.CustomColumnsManager;
-import net.sourceforge.ganttproject.task.CustomColumnsStorage;
-import net.sourceforge.ganttproject.task.TaskManager;
 import net.sourceforge.ganttproject.task.TaskSelectionManager;
 import net.sourceforge.ganttproject.undo.GPUndoManager;
 
@@ -25,29 +21,18 @@ public class Mediator {
      */
     private static GanttProject ganttprojectSingleton = null;
 
-    /**
-     * The unique CustomColumnsManager instance.
-     */
-    private static CustomColumnsManager customColumnsManager = null;
-
-    private static CustomColumnsStorage customColumnsStorage = null;
-
     private static TaskSelectionManager taskSelectionManager = null;
-
-    private static RoleManager roleManager = null;
-
-    private static TaskManager taskManager = null;
 
     private static GPUndoManager undoManager = null;
 
     private static DelayManager delayManager = null;
 
     private static PluginManager pluginManager = new PluginManager();
-    
+
     private static List<ChangeValueDispatcher> changeValueDispatchers = new ArrayList<ChangeValueDispatcher>();
 
     /**
-     * Regsiters the unique GanttProject instance.
+     * Registers the unique GanttProject instance.
      * 
      * @param gp
      *            The unique GanttProject instance.
@@ -57,7 +42,7 @@ public class Mediator {
     }
 
     /**
-     * Regsiters the unique CustomColumnsManager instance.
+     * Registers the unique CustomColumnsManager instance.
      * 
      * @param managerThe
      *            unique CustomColumnsManager instance.
@@ -90,7 +75,7 @@ public class Mediator {
     public static void registerDelayManager(DelayManager delayMgr) {
         delayManager = delayMgr;
     }
-    
+
     public static void addChangeValueDispatcher(ChangeValueDispatcher dispatcher){
         changeValueDispatchers.add(dispatcher);
     }
@@ -145,7 +130,7 @@ public class Mediator {
     public static PluginManager getPluginManager() {
         return pluginManager;
     }
-    
+
     public static List<ChangeValueDispatcher> getChangeValueDispatchers(){
         return changeValueDispatchers;
     }

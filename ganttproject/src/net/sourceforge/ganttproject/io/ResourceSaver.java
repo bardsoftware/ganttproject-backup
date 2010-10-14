@@ -53,7 +53,7 @@ class ResourceSaver extends SaverBase {
 
 	private void saveCustomColumnDefinitions(IGanttProject project, TransformerHandler handler) throws SAXException {
 		CustomPropertyManager customPropsManager = project.getHumanResourceManager().getCustomPropertyManager();
-		List/*<CustomPropertyDefinition>*/ definitions = customPropsManager.getDefinitions();
+		List<CustomPropertyDefinition> definitions = customPropsManager.getDefinitions();
 //		HumanResourceManager hrManager = (HumanResourceManager) project.getHumanResourceManager();
 //		Map customFields = hrManager.getCustomFields();
 //		if (customFields.size()==0) {

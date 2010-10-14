@@ -104,8 +104,9 @@ public class ResourceTreeTableModel extends DefaultTreeTableModel {
         Enumeration childs = root.children();
         while (childs.hasMoreElements() && res == null) {
             ResourceNode rn = (ResourceNode) childs.nextElement();
-            if (resource.equals(rn.getUserObject()))
+            if (resource.equals(rn.getUserObject())) {
                 res = rn;
+            }
         }
         return res;
     }
@@ -116,8 +117,9 @@ public class ResourceTreeTableModel extends DefaultTreeTableModel {
                 .children();
         while (childs.hasMoreElements() && res == null) {
             AssignmentNode an = (AssignmentNode) childs.nextElement();
-            if (assignement.equals(an.getUserObject()))
+            if (assignement.equals(an.getUserObject())) {
                 res = an;
+            }
         }
         return res;
     }
@@ -131,9 +133,7 @@ public class ResourceTreeTableModel extends DefaultTreeTableModel {
         while (itRes.hasNext()) {
             ProjectResource pr = itRes.next();
 
-            ResourceAssignment[] tra = pr.getAssignments();
-            ResourceNode rnRes = new ResourceNode(pr); // the first for the
-            // resource
+            ResourceNode rnRes = new ResourceNode(pr); // the first for the resource
             root.add(rnRes);
         }
         return root;
@@ -142,7 +142,7 @@ public class ResourceTreeTableModel extends DefaultTreeTableModel {
     public void updateResources() {
         ProjectResource[] listResources = myResourceManager.getResourcesArray();
 
-        for (int idxResource=0; idxResource<listResources.length; idxResource++) {
+        for (int idxResource = 0; idxResource < listResources.length; idxResource++) {
             ProjectResource pr = listResources[idxResource];
 
             ResourceNode rnRes = exists(pr);
@@ -157,8 +157,9 @@ public class ResourceTreeTableModel extends DefaultTreeTableModel {
 //                    rnRes.add(an);
 //                }
 //            }
-            if (exists(pr) == null)
+            if (exists(pr) == null) {
                 root.add(rnRes);
+            }
             this.nodeStructureChanged(rnRes);
         }
         // this.setRoot(root);
@@ -170,19 +171,22 @@ public class ResourceTreeTableModel extends DefaultTreeTableModel {
         Enumeration en = root.children();
         while (res == null && en.hasMoreElements()) {
             ResourceNode rn = (ResourceNode) en.nextElement();
-            if (rn.getUserObject().equals(pr))
+            if (rn.getUserObject().equals(pr)) {
                 res = rn;
+            }
         }
         return res;
     }
 
+    // TODO Method is not used... delete?
     private AssignmentNode exists(ResourceNode rn, ResourceAssignment ra) {
         AssignmentNode res = null;
         Enumeration en = rn.children();
         while (res == null && en.hasMoreElements()) {
             AssignmentNode an = (AssignmentNode) en.nextElement();
-            if (an.getUserObject().equals(ra))
+            if (an.getUserObject().equals(ra)) {
                 res = an;
+            }
         }
         return res;
     }
@@ -214,7 +218,6 @@ public class ResourceTreeTableModel extends DefaultTreeTableModel {
             if (col != null)
                 col.setTitle(cols[i]);
         }
-
     }
 
     /**
@@ -256,10 +259,10 @@ public class ResourceTreeTableModel extends DefaultTreeTableModel {
         }
     }
 
-    public void changePeople(List peoples) {
-        Iterator it = peoples.iterator();
+    public void changePeople(List<ProjectResource> peoples) {
+        Iterator<ProjectResource> it = peoples.iterator();
         while (it.hasNext())
-            addResource((ProjectResource) it.next());
+            addResource(it.next());
     }
 
     public DefaultMutableTreeNode addResource(ProjectResource people) {
@@ -316,8 +319,7 @@ public class ResourceTreeTableModel extends DefaultTreeTableModel {
 
     public ArrayList<ResourceColumn> getColumns()
     {
-        ArrayList<ResourceColumn> res = new ArrayList<ResourceColumn>(columns.values());
-        return res;
+        return new ArrayList<ResourceColumn>(columns.values());
     }
 
     /** Returns the ResourceColumn associated to the given index */
@@ -449,10 +451,12 @@ public class ResourceTreeTableModel extends DefaultTreeTableModel {
 
     /** Adds a custom column (which is removable) to the datamodel */
     public void addCustomColumn(String title, ResourceColumn col) throws Exception{
-        if (((HumanResourceManager)myResourceManager).checkCustomField(title))
+        if (myResourceManager.checkCustomField(title))
+        {
             /* TODO add translation */
             throw new Exception("Column exists");
-        ((HumanResourceManager)myResourceManager).addCustomField(col);
+        }
+        myResourceManager.addCustomField(col);
         columns.put(new Integer(index), col);
     }
 
@@ -465,8 +469,8 @@ public class ResourceTreeTableModel extends DefaultTreeTableModel {
         while (i.hasNext()) {
             toDel = i.next();
             if (name.equals( toDel.getTitle() )) {
-                ((HumanResourceManager)myResourceManager).removeCustomField(toDel.getTitle());
-                /* this deletes the object from the Hashtable too */
+                myResourceManager.removeCustomField(toDel.getTitle());
+                /* this deletes the object from the HashTable too */
                 vals.remove(toDel);
                 return toDel;
             }
@@ -478,22 +482,22 @@ public class ResourceTreeTableModel extends DefaultTreeTableModel {
     /** checks if the given column is removable */
     public boolean checkRemovableCol(String name) {
         /* only custom columns are removable */
-        return ((HumanResourceManager)myResourceManager).checkCustomField(name);
+        return myResourceManager.checkCustomField(name);
     }
 
     public void resourceChanged(ProjectResource resource) {
         ResourceNode node = getNodeForResource(resource);
-        if (node==null) {
+        if (node == null) {
             return;
         }
         TreeNode parent = node.getParent();
         int index = parent.getIndex(node);
-        assert index>=0;
+        assert index >= 0;
         nodesChanged(parent, new int[] {index});
     }
 
     public void resourceAssignmentsChanged(ProjectResource[] resources) {
-        for (int i=0; i<resources.length; i++) {
+        for (int i = 0; i < resources.length; i++) {
             ResourceNode nextNode = exists(resources[i]);
             SelectionKeeper selectionKeeper = new SelectionKeeper(mySelectionModel, nextNode);
             buildAssignmentsSubtree(nextNode);
@@ -507,7 +511,7 @@ public class ResourceTreeTableModel extends DefaultTreeTableModel {
         ResourceAssignment[] assignments = resource.getAssignments();
         int[] indices = new int[assignments.length];
         TreeNode[] children = new TreeNode[assignments.length];
-        if (assignments.length>0) {
+        if (assignments.length > 0) {
             for (int i = 0; i < assignments.length; i++) {
                 indices[i] = i;
                 AssignmentNode an = new AssignmentNode(assignments[i]);
@@ -516,7 +520,6 @@ public class ResourceTreeTableModel extends DefaultTreeTableModel {
             }
         }
         fireTreeStructureChanged(this, resourceNode.getPath(), indices, children);
-
     }
 
     void decreaseCustomPropertyIndex(int i) {
@@ -557,7 +560,5 @@ public class ResourceTreeTableModel extends DefaultTreeTableModel {
                 }
             }
         }
-
-
     }
 }

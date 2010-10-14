@@ -113,7 +113,6 @@ public class PrintPreview extends JDialog {
             onChangingDates();
             lock();
         }
-        
     };
 
     private DateOption myFinish = new DefaultDateOption("generic.endDate") {
@@ -123,19 +122,18 @@ public class PrintPreview extends JDialog {
             onChangingDates();
             lock();
         }
-        
     };
 
 	private final IGanttProject myProject;
 
 	private final UIFacade myUIfacade;
-    
+
     private void onChangingDates() {
         myExportSettings.setStartDate(myStart.getValue());
         myExportSettings.setEndDate(myFinish.getValue());
         updateSourceImage();            
     }
-    
+
     public PrintPreview(IGanttProject project, UIFacade uifacade, Chart chart, Date start,
             Date end) {
         super(uifacade.getMainFrame(), GanttLanguage.getInstance().getText("preview"), false);
@@ -172,8 +170,8 @@ public class PrintPreview extends JDialog {
             }
         });
 
-        JButton bClose = bClose = new TestGanttRolloverButton(new ImageIcon(
-                getClass().getResource("/icons/exit_16.gif")));
+        JButton bClose = new TestGanttRolloverButton(new ImageIcon(getClass()
+                .getResource("/icons/exit_16.gif")));
         bClose.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 setVisible(false);
@@ -240,8 +238,6 @@ public class PrintPreview extends JDialog {
         myComboScale.setEditable(true);
 
         boolean isDate = start != null && end != null;
-        ImageIcon icon = new ImageIcon(getClass().getResource(
-                "/icons/calendar_16.gif"));
 
         myStart.lock();
         myFinish.lock();
@@ -470,8 +466,6 @@ public class PrintPreview extends JDialog {
 
         myPreviewContainer = new PreviewContainer();
 
-        PrinterJob prnJob = PrinterJob.getPrinterJob();
-
         // --
         myPageFormat = new PageFormat();
         myPageFormat.setOrientation(myOrientation);
@@ -495,8 +489,6 @@ public class PrintPreview extends JDialog {
         myPageWidth = (int) (myPageFormat.getWidth());
         myPageHeight = (int) (myPageFormat.getHeight());
         myScale = 50;
-        final int w = (int) (myPageWidth * myScale / 100);
-        final int h = (int) (myPageHeight * myScale / 100);
 
         createPages();
 
@@ -708,11 +700,11 @@ public class PrintPreview extends JDialog {
         private int getScaledWidth() {
         	return (int)(myPageFormat.getWidth() * myScalePercents / 100);
         }
-        
+
         private int getScaledHeight() {
         	return (int) (myPageFormat.getHeight() * myScalePercents / 100);
         }
-        
+
         public Dimension getPreferredSize() {
             Insets ins = getInsets();
             return new Dimension(

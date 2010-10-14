@@ -187,7 +187,7 @@ public class TaskDependencyCollectionImpl implements TaskDependencyCollection {
 
     }
 
-    private static class MutationInfo implements Comparable {
+    private static class MutationInfo implements Comparable<MutationInfo> {
         static final int ADD = 0;
 
         static final int DELETE = 1;
@@ -207,8 +207,7 @@ public class TaskDependencyCollectionImpl implements TaskDependencyCollection {
             this.myOperation = myOperation;
         }
 
-        public int compareTo(Object o) {
-            MutationInfo rvalue = (MutationInfo) o;
+        public int compareTo(MutationInfo rvalue) {
             return myOrder - rvalue.myOrder;
         }
     }

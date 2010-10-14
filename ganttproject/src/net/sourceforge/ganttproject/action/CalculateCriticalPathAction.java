@@ -28,7 +28,7 @@ public class CalculateCriticalPathAction extends GPAction implements
     private final UIConfiguration myUIConfiguration;
 
     private final GanttOptions myOptions;
-    
+
     private final GanttProject appli;
 
     public CalculateCriticalPathAction(TaskManager taskManager, GanttTree2 tree,
@@ -39,8 +39,6 @@ public class CalculateCriticalPathAction extends GPAction implements
         myUIConfiguration = uiConfiguration;
         myOptions = options;
         this.appli = appli;
-
-       
     }
 
     protected String getIconFilePrefix() {

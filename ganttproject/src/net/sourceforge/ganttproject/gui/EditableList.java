@@ -255,7 +255,7 @@ public abstract class EditableList<T>  {
     }
 
 
-    class TableAndActionsImpl extends AbstractTableAndActionsComponent {
+    class TableAndActionsImpl extends AbstractTableAndActionsComponent<T> {
         TableAndActionsImpl() {
             super(resourcesTable);
         }

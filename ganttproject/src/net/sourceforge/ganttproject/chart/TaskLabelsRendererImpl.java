@@ -63,10 +63,13 @@ class TaskLabelsRendererImpl /*implements CustomPropertyListener*/ {
         ourInfoList.add("predecessors");
 
     }
+
+    // TODO This method is never used... Delete?
     private void addOption(String name) {
         ourInfoList.add(name);
     }
 
+    // TODO This method is never used... Delete?
     private void removeOption(String name) {
         ourInfoList.remove(name);
     }

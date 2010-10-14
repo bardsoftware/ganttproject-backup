@@ -52,7 +52,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
 /**
- * Classe for the graphic part of the soft
+ * Class for the graphic part of the soft
  */
 public class ResourceLoadGraphicArea extends ChartComponentBase implements
         ResourceChart {
@@ -216,11 +216,6 @@ public class ResourceLoadGraphicArea extends ChartComponentBase implements
 
         return new RenderedResourceChartImage(myChartModel, myChartImplementation,  resource_image, chartWidth, chartHeight);
     }
-
-    private HumanResourceManager getHumanResourceManager() {
-        return (HumanResourceManager) appli.getHumanResourceManager();
-    }
-
 
     public String getName() {
         return GanttLanguage.getInstance().getText("resourcesChart");

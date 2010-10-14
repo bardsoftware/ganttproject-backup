@@ -888,7 +888,6 @@ public class GanttTaskPropertiesBean extends JPanel {
         } catch (NumberFormatException e) {
 
         }
-
     }
 
     /** Set the duration of the task */
@@ -1034,6 +1033,7 @@ public class GanttTaskPropertiesBean extends JPanel {
         this.taskIsProjectTask = task.isProjectTask();
     }
 
+    // TODO Method is unded... delete?
     private void copyValues(ResourcesTableModel original,
             ResourcesTableModel clone) {
         for (int i = 0; i < clone.getRowCount(); i++) {
@@ -1063,6 +1063,7 @@ public class GanttTaskPropertiesBean extends JPanel {
         }
         return true;
     }
+
     private boolean isProjectTaskOrContainsProjectTask(Task task) {
         if (task.isProjectTask()) {
             return true;

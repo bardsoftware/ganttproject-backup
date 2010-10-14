@@ -18,10 +18,8 @@ import java.net.URLEncoder;
 
 import net.sourceforge.ganttproject.GPLogger;
 import net.sourceforge.ganttproject.GanttCalendar;
-import net.sourceforge.ganttproject.GanttTask;
 import net.sourceforge.ganttproject.GanttTaskRelationship;
 import net.sourceforge.ganttproject.calendar.AlwaysWorkingTimeCalendarImpl;
-import net.sourceforge.ganttproject.calendar.CalendarActivityImpl;
 import net.sourceforge.ganttproject.calendar.GPCalendar;
 import net.sourceforge.ganttproject.calendar.GPCalendarActivity;
 import net.sourceforge.ganttproject.document.AbstractURLDocument;
@@ -52,7 +50,7 @@ public class TaskImpl implements Task {
     private boolean isMilestone;
 
     boolean isProjectTask;
-    
+
     private Priority myPriority;
 
     private GanttCalendar myStart;
@@ -67,7 +65,7 @@ public class TaskImpl implements Task {
 
     private TaskLength myLength;
 
-    private List myActivities = new ArrayList();
+    private List<TaskActivity> myActivities = new ArrayList<TaskActivity>();
 
 //    private boolean isStartFixed;
 
@@ -341,12 +339,11 @@ public class TaskImpl implements Task {
     }
 
     public TaskActivity[] getActivities() {
-        List activities = myMutator == null ? null : myMutator.getActivities();
+        List<TaskActivity> activities = myMutator == null ? null : myMutator.getActivities();
         if (activities == null) {
             activities = myActivities;
         }
-        return (TaskActivity[]) activities.toArray(new TaskActivity[activities
-                .size()]);
+        return activities.toArray(new TaskActivity[activities.size()]);
     }
 
     public TaskLength getDuration() {
@@ -492,13 +489,10 @@ public class TaskImpl implements Task {
     }
 
     private static class FieldChange {
-        String myFieldName;
-
         Object myFieldValue;
 		Object myOldValue;
 
         EventSender myEventSender;
-
 
         void setValue(Object newValue) {
             myFieldValue = newValue;
@@ -511,6 +505,7 @@ public class TaskImpl implements Task {
     }
 
     private static class DurationChange extends FieldChange {
+        // TODO Method is unused... delete?
         Date getCachedDate(int length) {
             if (myDates == null) {
                 return null;
@@ -522,6 +517,7 @@ public class TaskImpl implements Task {
             return myDates.get(index);
         }
 
+        // TODO Method is unused... delete?
         void cacheDate(Date date, int length) {
             if (myDates == null) {
                 myDates = new ArrayList<Date>();
@@ -564,7 +560,7 @@ public class TaskImpl implements Task {
 
         private DurationChange myDurationChange;
 
-        private List myActivities;
+        private List<TaskActivity>  myActivities;
 
         private final List<Runnable> myCommands = new ArrayList<Runnable>();
 
@@ -572,7 +568,6 @@ public class TaskImpl implements Task {
 
         public void commit() {
             try {
-                boolean fireChanges = false;
                 if (myStartChange != null) {
                     GanttCalendar start = getStart();
                     TaskImpl.this.setStart(start);
@@ -622,10 +617,10 @@ public class TaskImpl implements Task {
                     : (GanttCalendar) myThirdChange.myFieldValue;
         }
 
-        public List getActivities() {
+        public List<TaskActivity> getActivities() {
             if (myActivities == null && (myStartChange != null)
                     || (myDurationChange != null)) {
-                myActivities = new ArrayList();
+                myActivities = new ArrayList<TaskActivity>();
                 TaskImpl.this.recalculateActivities(myActivities, getStart()
                         .getTime(), TaskImpl.this.getEnd().getTime());
             }
@@ -910,9 +905,7 @@ public class TaskImpl implements Task {
         Date closestWorkingStart = myManager.findClosestWorkingTime(start
                 .getTime());
         start.setTime(closestWorkingStart);
-        GanttCalendar oldStart = myStart == null ? null : myStart.Clone();
         myStart = start;
-        GanttCalendar oldEnd = getEnd();
 
         //if (myID>=0) {
             recalculateActivities();
@@ -938,7 +931,6 @@ public class TaskImpl implements Task {
     }
 
     public void setEnd(GanttCalendar end) {
-        GanttCalendar oldFinish = myEnd == null ? null : myEnd.Clone();
         myEnd = end;
         recalculateActivities();
         // System.err.println("we have "+myActivities.size()+" activities");
@@ -948,7 +940,6 @@ public class TaskImpl implements Task {
     }
 
     public void setThirdDate(GanttCalendar third) {
-        GanttCalendar oldThird = myThird == null ? null : myThird.Clone();
         myThird = third;
         // recalculateActivities();
         // if (areEventsEnabled()) {
@@ -959,7 +950,7 @@ public class TaskImpl implements Task {
     public void setThirdDateConstraint(int thirdDateConstraint) {
         myThirdDateConstraint = thirdDateConstraint;
     }
-    
+
     public void shift(TaskLength shift) {
         float unitCount = shift.getLength(myLength.getTimeUnit());
         if (unitCount != 0f) {
@@ -1057,14 +1048,14 @@ public class TaskImpl implements Task {
         myLength = getManager().createLength(myLength.getTimeUnit(), length);
     }
 
-    private void recalculateActivities(List output, Date startDate, Date endDate) {
+    private void recalculateActivities(List<TaskActivity> output, Date startDate, Date endDate) {
         GPCalendar calendar = myManager.getConfig().getCalendar();
-        List<CalendarActivityImpl> activities = calendar.getActivities(startDate, endDate);
+        List<GPCalendarActivity> activities = calendar.getActivities(startDate, endDate);
         output.clear();
         for (int i = 0; i < activities.size(); i++) {
             GPCalendarActivity nextCalendarActivity = activities
                     .get(i);
-            TaskActivityImpl nextTaskActivity;
+            TaskActivity nextTaskActivity;
             if (nextCalendarActivity.isWorkingTime()) {
                 nextTaskActivity = new TaskActivityImpl(this,
                         nextCalendarActivity.getStart(), nextCalendarActivity
@@ -1076,7 +1067,7 @@ public class TaskImpl implements Task {
             } else {
                 continue;
             }
-            output.add(nextTaskActivity);
+            output.add( nextTaskActivity);
         }
     }
 

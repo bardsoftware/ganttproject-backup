@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import net.sourceforge.ganttproject.CustomPropertyDefinition;
 import net.sourceforge.ganttproject.CustomPropertyListener;
@@ -16,7 +15,7 @@ import net.sourceforge.ganttproject.language.GanttLanguage;
 import net.sourceforge.ganttproject.util.DateUtils;
 
 /**
- * TODO Remove tha map Name->customColum to keep only the map Id -> CustomColumn
+ * TODO Remove the map Name->customColum to keep only the map Id -> CustomColumn
  * This class stores the CustomColumns.
  *
  * @author bbaranne (Benoit Baranne) Mar 2, 2005
@@ -33,7 +32,7 @@ public class CustomColumnsStorage {
      * Column name (String) -> CustomColumn
      */
     // private Map customColumns = null;
-    private final Map<String, CustomPropertyDefinition> mapIdCustomColum = new HashMap<String, CustomPropertyDefinition>();
+    private final Map<String, CustomColumn> mapIdCustomColum = new HashMap<String, CustomColumn>();
 
     /**
      * Creates an instance of CustomColumnsStorage.
@@ -142,7 +141,7 @@ public class CustomColumnsStorage {
      *
      * @return A collection with all the stored custom columns.
      */
-    public Collection<CustomPropertyDefinition> getCustomColums() {
+    public Collection<CustomColumn> getCustomColums() {
         // return customColumns.values();
         return mapIdCustomColum.values();
     }
@@ -246,7 +245,7 @@ public class CustomColumnsStorage {
 
     public String getIdFromName(String name) {
         String id = null;
-        Iterator<CustomPropertyDefinition> it = mapIdCustomColum.values().iterator();
+        Iterator<CustomColumn> it = mapIdCustomColum.values().iterator();
         while (it.hasNext()) {
             CustomColumn cc = (CustomColumn) it.next();
             if (cc.getName().equals(name)) {
@@ -270,9 +269,9 @@ public class CustomColumnsStorage {
      *            The task to process.
      */
     public void processNewTask(Task task) {
-        Iterator<CustomPropertyDefinition> it = mapIdCustomColum.values().iterator();
+        Iterator<CustomColumn> it = mapIdCustomColum.values().iterator();
         while (it.hasNext()) {
-            CustomColumn cc = (CustomColumn) it.next();
+            CustomColumn cc = it.next();
             try {
                 if (cc.getDefaultValue()!=null) {
                     task.getCustomValues().setValue(
@@ -292,9 +291,9 @@ public class CustomColumnsStorage {
     }
 
     public void importData(CustomColumnsStorage source) {
-        for (Iterator<CustomPropertyDefinition> columns = source.getCustomColums().iterator();
+        for (Iterator<CustomColumn> columns = source.getCustomColums().iterator();
              columns.hasNext();) {
-            CustomColumn nextColumn = (CustomColumn) columns.next();
+            CustomColumn nextColumn = columns.next();
             if (!exists(nextColumn.getName())) {
                 addCustomColumn(nextColumn);
             }

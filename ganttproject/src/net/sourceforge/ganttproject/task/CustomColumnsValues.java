@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-
 /**
  * This class handles the custom columns for one single task. It associate a
  * customColumn name with a value. The name of the custom column has to exist in

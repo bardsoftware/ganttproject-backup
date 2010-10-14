@@ -177,6 +177,7 @@ public class XMLCalendarOpen {
         return myCalendarLabels;
     }
 
+    // TODO Class is never used... remove?
     private static class Filter extends FileFilter implements FilenameFilter {
         private String extension;
 

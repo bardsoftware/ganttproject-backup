@@ -1,8 +1,9 @@
 package net.sourceforge.ganttproject.gui.options.model;
 
-public class DefaultBooleanOption extends GPAbstractOption implements
+public class DefaultBooleanOption extends GPAbstractOption<Boolean> implements
         BooleanOption {
 
+    // TODO GPAbstractOption also contains a myValue, are those the same?? (If so they should be merged and made protected)
     private boolean myValue;
 
     private boolean myLockedValue;
@@ -34,7 +35,8 @@ public class DefaultBooleanOption extends GPAbstractOption implements
 
     public String getPersistentValue() {
         return Boolean.toString(isChecked());
-}
+    }
+
     public void loadPersistentValue(String value) {
         myLockedValue = Boolean.valueOf(value).booleanValue();
     }
