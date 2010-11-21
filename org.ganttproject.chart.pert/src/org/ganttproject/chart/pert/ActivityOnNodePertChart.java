@@ -1134,7 +1134,7 @@ public class ActivityOnNodePertChart extends PertChart {
         // TODO Auto-generated method stub
     }
 
-    public void scrollBy(int days) {
+    public void scrollBy(TaskLength duration) {
         // TODO Auto-generated method stub
         
     }
