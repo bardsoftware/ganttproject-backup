@@ -32,6 +32,7 @@ public class TimeUnitFunctionOfDateImpl extends TimeUnitDateFrameableImpl
     }
 
     public TimeUnit createTimeUnit(Date date) {
+        //TODO Only works if myBaseDate is not a TimeUnitFunctiongOfDateImpl! (Quarter -> Month -> Day fails!)
         return new ParameterizedTimeUnitImpl(date);
     }
 
@@ -41,20 +42,13 @@ public class TimeUnitFunctionOfDateImpl extends TimeUnitDateFrameableImpl
     }
 
     private class ParameterizedTimeUnitImpl implements TimeUnit, DateFrameable {
-        // TODO FIeld is never read... Remove?
-        private final Date myBaseDate;
-
         private final Date myRightDate;
 
         private final Date myLeftDate;
 
         private int myAtomCount = -1;
 
-        // TODO FIeld is never read... Remove?
-        private TextFormatter myTextFormatter;
-
         public ParameterizedTimeUnitImpl(Date myBaseDate) {
-            this.myBaseDate = myBaseDate;
             this.myRightDate = TimeUnitFunctionOfDateImpl.this
                     .adjustRight(myBaseDate);
             this.myLeftDate = TimeUnitFunctionOfDateImpl.this

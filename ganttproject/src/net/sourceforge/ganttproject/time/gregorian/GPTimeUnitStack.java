@@ -27,14 +27,11 @@ public class GPTimeUnitStack implements TimeUnitStack {
 
     public final TimeUnit MONTH;
 
-    public TimeUnit QUARTER;
+    public final TimeUnit QUARTER;
 
     public TimeUnit YEAR = null;
 
     private final TimeUnitPair[] myPairs;
-
-    // Field is never read... Remove?
-    private TimeUnit MONTH_FROM_WEEKS;
 
     public final TimeUnit WEEK_AS_BOTTOM_UNIT;
 
@@ -48,29 +45,33 @@ public class GPTimeUnitStack implements TimeUnitStack {
         MONTH.setTextFormatter(new MonthTextFormatter());
         WEEK = ourGraph.createDateFrameableTimeUnit("week", DAY, 7,
                 new WeekFramerImpl());
-        MONTH_FROM_WEEKS = ourGraph.createTimeUnitFunctionOfDate(
-                "month_from_weeks", WEEK, new FramerImpl(Calendar.MONTH));
         WEEK.setTextFormatter(new WeekTextFormatter(i18n.getText("week")
                 + " {0}"));
         WEEK_AS_BOTTOM_UNIT = ourGraph.createDateFrameableTimeUnit("week", DAY,
                 7, new WeekFramerImpl());
         WEEK_AS_BOTTOM_UNIT.setTextFormatter(new WeekTextFormatter("{0}"));
+        QUARTER = ourGraph.createTimeUnitFunctionOfDate("quarter", MONTH,
+                new FramerImpl(Calendar.MONTH));
+        QUARTER.setTextFormatter(new QuarterTextFormatter());
         YEAR = ourGraph.createTimeUnitFunctionOfDate("year", DAY,
                 new FramerImpl(Calendar.YEAR));
         YEAR.setTextFormatter(new YearTextFormatter());
         myPairs = new TimeUnitPair[] {
-                new MyTimeUnitPair(WEEK, DAY),
-                new MyTimeUnitPair(WEEK, DAY),
-                new MyTimeUnitPair(MONTH, DAY),
-                new MyTimeUnitPair(MONTH, WEEK_AS_BOTTOM_UNIT),
-                new MyTimeUnitPair(MONTH, WEEK_AS_BOTTOM_UNIT),
-                new MyTimeUnitPair(MONTH, WEEK_AS_BOTTOM_UNIT),
-                new MyTimeUnitPair(MONTH, WEEK_AS_BOTTOM_UNIT),
+                new TimeUnitPair(WEEK, DAY, this, 65),
+                new TimeUnitPair(WEEK, DAY, this, 55),
+                new TimeUnitPair(MONTH, DAY, this, 44),
+                new TimeUnitPair(MONTH, DAY, this, 34),
+                new TimeUnitPair(MONTH, WEEK_AS_BOTTOM_UNIT, this, 24), 
+                new TimeUnitPair(MONTH, WEEK_AS_BOTTOM_UNIT, this, 21), 
+                new TimeUnitPair(YEAR, WEEK_AS_BOTTOM_UNIT, this, 13),
+                new TimeUnitPair(YEAR, WEEK_AS_BOTTOM_UNIT, this, 8),
+                new TimeUnitPair(YEAR, MONTH, this, 5), 
+                new TimeUnitPair(YEAR, MONTH, this, 3),
                 /*
                  * The last pair is reused for the next steps,
                  * so it is needed only once.
                  */
-                new MyTimeUnitPair(YEAR, WEEK_AS_BOTTOM_UNIT) };
+                /*new TimeUnitPair(YEAR, QUARTER, this, 1)*/ };
     }
 
     public TimeFrame createTimeFrame(Date baseDate, TimeUnit topUnit,
@@ -91,12 +92,6 @@ public class GPTimeUnitStack implements TimeUnitStack {
 
     public TimeUnitPair[] getTimeUnitPairs() {
         return myPairs;
-    }
-
-    private class MyTimeUnitPair extends TimeUnitPair {
-        MyTimeUnitPair(TimeUnit topUnit, TimeUnit bottomUnit) {
-            super(topUnit, bottomUnit, GPTimeUnitStack.this);
-        }
     }
 
     public DateFormat[] getDateFormats() {
