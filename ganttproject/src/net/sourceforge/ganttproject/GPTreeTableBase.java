@@ -1,20 +1,51 @@
+/*
+GanttProject is an opensource project management tool. License: GPL2
+Copyright (C) 2011 Dmitry Barashev
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 package net.sourceforge.ganttproject;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.text.AttributedCharacterIterator;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
 
 import javax.swing.Action;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
+import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -22,29 +53,215 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.JTree;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableColumnModelListener;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
 import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableColumn;
 import javax.swing.text.JTextComponent;
 
 import net.sourceforge.ganttproject.action.GPAction;
 import net.sourceforge.ganttproject.calendar.CalendarFactory;
 import net.sourceforge.ganttproject.chart.TimelineChart;
+import net.sourceforge.ganttproject.gui.TableHeaderUIFacade;
+import net.sourceforge.ganttproject.gui.TableHeaderUIFacade.Column;
+import net.sourceforge.ganttproject.gui.UIFacade;
 import net.sourceforge.ganttproject.language.GanttLanguage;
 import net.sourceforge.ganttproject.task.CustomColumn;
+import net.sourceforge.ganttproject.task.CustomPropertyEvent;
 
 import org.jdesktop.jdnc.JNTreeTable;
 import org.jdesktop.swing.JXTreeTable;
+import org.jdesktop.swing.decorator.AlternateRowHighlighter;
+import org.jdesktop.swing.decorator.HierarchicalColumnHighlighter;
+import org.jdesktop.swing.decorator.Highlighter;
+import org.jdesktop.swing.decorator.HighlighterPipeline;
 import org.jdesktop.swing.table.TableColumnExt;
+import org.jdesktop.swing.treetable.DefaultTreeTableModel;
 import org.jdesktop.swing.treetable.TreeTableModel;
 
-public class GPTreeTableBase extends JNTreeTable{
+public class GPTreeTableBase extends JNTreeTable implements CustomPropertyListener{
     private final IGanttProject myProject;
+    private final UIFacade myUiFacade;
+    private final TableHeaderUiFacadeImpl myTableHeaderFacade = new TableHeaderUiFacadeImpl();
+    private final CustomPropertyManager myCustomPropertyManager;
+
+    protected class TableHeaderUiFacadeImpl implements TableHeaderUIFacade {
+        private final List<ColumnImpl> myColumns = new ArrayList<ColumnImpl>();
+        @Override
+        public int getSize() {
+            return myColumns.size();
+        }
+        @Override
+        public Column getField(int index) {
+            return myColumns.get(index);
+        }
+        @Override
+        public void clear() {
+        }
+        @Override
+        public void add(String name, int order, int width) {
+        }
+        @Override
+        public void importData(TableHeaderUIFacade source) {
+        }
+
+        protected void createDefaultColumns(List<TableHeaderUIFacade.Column> stubs) {
+            for (int i = 0; i < stubs.size(); i++) {
+                createColumn(i, stubs.get(i));
+            }
+            Collections.sort(myColumns, new Comparator<ColumnImpl>() {
+                @Override
+                public int compare(ColumnImpl left, ColumnImpl right) {
+                    if (!left.getStub().isVisible() && !right.getStub().isVisible()) {
+                        return left.getName().compareTo(right.getName());
+                    }
+                    return left.getStub().getOrder() - right.getStub().getOrder();
+                }
+            });
+            for (ColumnImpl column : myColumns) {
+                if (column.getStub().isVisible()) {
+                    insertColumnIntoUi(column);
+                }
+            }
+        }
+
+        protected ColumnImpl createColumn(int modelIndex, TableHeaderUIFacade.Column stub) {
+            TableColumnExt tableColumn = newTableColumnExt(modelIndex);
+            tableColumn.setPreferredWidth(stub.getWidth());
+            ColumnImpl result = new ColumnImpl(getTreeTable(), tableColumn, stub);
+            myColumns.add(result);
+            return result;
+        }
+
+        protected void insertColumnIntoUi(ColumnImpl column) {
+            getTable().addColumn(column.myTableColumn);
+            int align = getTable().getModel().getColumnClass(column.myTableColumn.getModelIndex()).equals(GregorianCalendar.class)
+                ? SwingConstants.RIGHT : SwingConstants.CENTER;
+            setColumnHorizontalAlignment(column.getName(), align);
+        }
+
+        protected void clearColumns() {
+            List<TableColumn> columns = Collections.list(getTable().getColumnModel().getColumns());
+            for (int i = 0; i < columns.size(); i++) {
+                getTable().removeColumn(columns.get(i));
+            }
+            myColumns.clear();
+        }
+
+        protected void renameColumn(CustomPropertyDefinition definition) {
+            ColumnImpl c = findColumnByID(definition.getID());
+            if (c == null) {
+                return;
+            }
+            c.setName(definition.getName());
+        }
+
+        protected void deleteColumn(CustomPropertyDefinition definition) {
+            ColumnImpl c = findColumnByID(definition.getID());
+            if (c == null) {
+                return;
+            }
+            getTable().removeColumn(c.myTableColumn);
+            myColumns.remove(c);
+            for (ColumnImpl column : myColumns) {
+                if (column.myTableColumn.getModelIndex() > c.myTableColumn.getModelIndex()) {
+                    column.myTableColumn.setModelIndex(column.myTableColumn.getModelIndex() - 1);
+                }
+            }
+        }
+
+        protected ColumnImpl findColumnByID(String id) {
+            for (ColumnImpl c : myColumns) {
+                if (c.getID().equals(id)) {
+                    return c;
+                }
+            }
+            return null;
+        }
+
+        protected ColumnImpl findColumnByViewIndex(int index) {
+            for (ColumnImpl c : myColumns) {
+                if (c.getOrder() == index) {
+                    return c;
+                }
+            }
+            return null;
+        }
+
+    }
+    protected static class ColumnImpl implements TableHeaderUIFacade.Column {
+        private final JXTreeTable myTable;
+        private final TableColumnExt myTableColumn;
+        private final Column myStub;
+
+        protected ColumnImpl(JXTreeTable table, TableColumnExt tableColumn, TableHeaderUIFacade.Column stub) {
+            myTable = table;
+            myTableColumn = tableColumn;
+            myStub = stub;
+        }
+
+        private TreeTableModel getTableModel() {
+            return myTable.getTreeTableModel();
+        }
+
+        @Override
+        public String getID() {
+            return myStub.getID();
+        }
+        @Override
+        public String getName() {
+            return getTableModel().getColumnName(myTableColumn.getModelIndex());
+        }
+
+        private void setName(String name) {
+            myTableColumn.setTitle(name);
+        }
+
+        @Override
+        public int getOrder() {
+            return myTable.convertColumnIndexToView(myTableColumn.getModelIndex());
+        }
+        @Override
+        public int getWidth() {
+            return myTableColumn.getWidth();
+        }
+        @Override
+        public boolean isVisible() {
+            return getOrder() >= 0;
+        }
+        @Override
+        public void setVisible(boolean visible) {
+            if (visible && !isVisible()) {
+                myTable.addColumn(myTableColumn);
+            } else if (!visible && isVisible()) {
+                myTable.getColumnModel().removeColumn(myTableColumn);
+            }
+        }
+
+        Column getStub() {
+            return myStub;
+        }
+
+        protected TableColumnExt getTableColumnExt() {
+            return myTableColumn;
+        }
+    }
+
     protected IGanttProject getProject() {
         return myProject;
     }
 
-    protected GPTreeTableBase(IGanttProject project, TreeTableModel model) {
+    protected GPTreeTableBase(IGanttProject project, UIFacade uiFacade, CustomPropertyManager customPropertyManager,
+            DefaultTreeTableModel model) {
         super(new JXTreeTable(model) {
             protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
                 if (e.isAltDown() || e.isControlDown()) {
@@ -54,9 +271,122 @@ public class GPTreeTableBase extends JNTreeTable{
                 putClientProperty("JTable.autoStartsEdit", Boolean.TRUE);
                 return result;
             }
-
         });
+        myCustomPropertyManager = customPropertyManager;
+        myUiFacade = uiFacade;
         myProject = project;
+    }
+
+    protected void init() {
+        myCustomPropertyManager.addListener(this);
+
+        getTable().getTableHeader().addMouseListener(new HeaderMouseListener(myCustomPropertyManager));
+        getTable().getColumnModel().addColumnModelListener(
+            new TableColumnModelListener() {
+                public void columnMoved(TableColumnModelEvent e) {
+                    if (e.getFromIndex() != e.getToIndex()) {
+                        myProject.setModified();
+                    }
+                }
+                public void columnAdded(TableColumnModelEvent e) {
+                    myProject.setModified();
+                }
+                public void columnRemoved(TableColumnModelEvent e) {
+                    myProject.setModified();
+                }
+                public void columnMarginChanged(ChangeEvent e) {
+                    myProject.setModified();
+                }
+                public void columnSelectionChanged(ListSelectionEvent e) {
+                }
+            });
+        getTable().setAutoCreateColumnsFromModel(false);
+        getTable().setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
+        setShowHorizontalLines(true);
+
+        setOpenIcon(null);
+        setClosedIcon(null);
+        setCollapsedIcon(new ImageIcon(getClass().getResource("/icons/plus.gif")));
+        setExpandedIcon(new ImageIcon(getClass().getResource("/icons/minus.gif")));
+        setLeafIcon(null);
+
+        setHasColumnControl(false);
+        getTreeTable().getParent().setBackground(Color.WHITE);
+
+        InputMap inputMap = getInputMap();
+        inputMap.setParent(getTreeTable().getInputMap(JComponent.WHEN_FOCUSED));
+        getTreeTable().setInputMap(JComponent.WHEN_FOCUSED, inputMap);
+        ActionMap actionMap= getActionMap();
+        actionMap.setParent(getTreeTable().getActionMap());
+        getTreeTable().setActionMap(actionMap);
+
+        setHighlighters(new HighlighterPipeline(new Highlighter[] {
+                AlternateRowHighlighter.quickSilver,
+                new HierarchicalColumnHighlighter() }));
+
+        getTable().getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent e) {
+                onCellSelectionChanged();
+            }
+        });
+        getTable().getColumnModel().getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent e) {
+                onCellSelectionChanged();
+            }
+        });
+        getTreeTable().getTree().addTreeExpansionListener(
+                new TreeExpansionListener() {
+                    public void treeExpanded(TreeExpansionEvent arg0) {
+                        myUiFacade.refresh();
+                    }
+                    public void treeCollapsed(TreeExpansionEvent arg0) {
+                        myUiFacade.refresh();
+                    }
+                });
+
+    }
+
+    private void onCellSelectionChanged() {
+        if (!getTable().isEditing()) {
+            int row = getTable().getSelectedRow();
+            int col = getTable().getSelectedColumn();
+            Rectangle rect = getTable().getCellRect(row, col, true);
+            scrollPane.scrollRectToVisible(rect);
+        }
+    }
+
+    private void addNewCustomColumn(CustomColumn customColumn) {
+        TableHeaderUIFacade.Column stub = new TableHeaderUIFacade.ColumnStub(
+            customColumn.getId(), customColumn.getName(), true, getTable().getColumnCount(), 100);
+        ColumnImpl columnImpl = getTableHeaderUiFacade().createColumn(getTable().getModel().getColumnCount() - 1, stub);
+        getTableHeaderUiFacade().insertColumnIntoUi(columnImpl);
+    }
+
+    private void deleteCustomColumn(CustomColumn column) {
+        getTableHeaderUiFacade().deleteColumn(column);
+    }
+
+    public void customPropertyChange(CustomPropertyEvent event) {
+        switch(event.getType()) {
+        case CustomPropertyEvent.EVENT_ADD:
+            addNewCustomColumn((CustomColumn) event.getDefinition());
+            break;
+        case CustomPropertyEvent.EVENT_REMOVE:
+            deleteCustomColumn((CustomColumn) event.getDefinition());
+            break;
+        case CustomPropertyEvent.EVENT_PROPERTY_CHANGE:
+            getTableHeaderUiFacade().renameColumn(event.getDefinition());
+            getTable().getTableHeader().repaint();
+            break;
+        }
+    }
+
+    public TableHeaderUIFacade getVisibleFields() {
+        return getTableHeaderUiFacade();
+    }
+
+    protected TableHeaderUiFacadeImpl getTableHeaderUiFacade() {
+        return myTableHeaderFacade;
     }
 
     protected TableColumnExt newTableColumnExt(int modelIndex, CustomColumn customColumn) {
@@ -70,9 +400,11 @@ public class GPTreeTableBase extends JNTreeTable{
 
     protected TableColumnExt newTableColumnExt(int modelIndex) {
         TableColumnExt result = new TableColumnExt(modelIndex);
-        TableCellEditor defaultEditor = getTreeTable().getDefaultEditor(getTreeTableModel().getColumnClass(modelIndex));
-        if (defaultEditor!=null) {
-            result.setCellEditor(new TreeTableCellEditorImpl(defaultEditor));
+        Class<?> columnClass = getTreeTableModel().getColumnClass(modelIndex);
+        TableCellEditor editor = columnClass.equals(GregorianCalendar.class)
+            ? newDateCellEditor() : getTreeTable().getDefaultEditor(columnClass);
+        if (editor!=null) {
+            result.setCellEditor(new TreeTableCellEditorImpl(editor));
         }
         return result;
     }
@@ -125,12 +457,31 @@ public class GPTreeTableBase extends JNTreeTable{
         };
     }
 
+    JTree getTree() {
+        return this.getTreeTable().getTree();
+    }
+
     public JScrollBar getVerticalScrollBar() {
         return scrollPane.getVerticalScrollBar();
     }
 
     public JScrollPane getScrollPane() {
         return scrollPane;
+    }
+
+    @Override
+    public void addMouseListener(MouseListener mouseListener) {
+        super.addMouseListener(mouseListener);
+        getTable().addMouseListener(mouseListener);
+        getTree().addMouseListener(mouseListener);
+        this.getTreeTable().getParent().addMouseListener(mouseListener);
+    }
+
+    @Override
+    public void addKeyListener(KeyListener keyListener) {
+        super.addKeyListener(keyListener);
+        getTable().addKeyListener(keyListener);
+        getTree().addKeyListener(keyListener);
     }
 
 
@@ -247,4 +598,60 @@ public class GPTreeTableBase extends JNTreeTable{
         addActionWithKeyStroke(copy);
         addActionWithKeyStroke(paste);
     }
+
+    private class HeaderMouseListener extends MouseAdapter {
+        private final CustomPropertyManager myCustomPropertyManager;
+
+        public HeaderMouseListener(CustomPropertyManager customPropertyManager) {
+            super();
+            myCustomPropertyManager = customPropertyManager;
+        }
+
+        /**
+         * @inheritDoc Shows the popupMenu to hide/show columns and to add
+         *             custom columns.
+         */
+        public void mousePressed(MouseEvent e) {
+            handlePopupTrigger(e);
+        }
+
+        public void mouseReleased(MouseEvent e) {
+            handlePopupTrigger(e);
+        }
+
+        private void handlePopupTrigger(MouseEvent e) {
+            if (e.isPopupTrigger()) {
+                GPAction[] popupActions = createPopupActions(e);
+                myUiFacade.showPopupMenu(e.getComponent(), popupActions, e.getX(), e.getY());
+            }
+        }
+
+        private GPAction[] createPopupActions(final MouseEvent mouseEvent) {
+            final int columnAtPoint = getTable().columnAtPoint(mouseEvent.getPoint());
+            final Column column = getTableHeaderUiFacade().findColumnByViewIndex(columnAtPoint);
+            GPAction hideAction = new GPAction("columns.hide.label") {
+                @Override
+                public void actionPerformed(ActionEvent arg0) {
+                    assert column.isVisible() : "how come it is at mouse click point?";
+                    column.setVisible(false);
+                }
+              };
+            if (columnAtPoint == -1) {
+                hideAction.setEnabled(false);
+            } else {
+                hideAction.putValue(Action.NAME, GanttLanguage.getInstance().formatText("columns.hide.label", column.getName()));
+            }
+            return new GPAction[] {
+              new GPAction("columns.manage.label") {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    ShowHideColumnsDialog dialog = new ShowHideColumnsDialog(myUiFacade, myTableHeaderFacade, myCustomPropertyManager);
+                    dialog.show();
+                }
+              },
+              hideAction
+            };
+        }
+    }
+
 }

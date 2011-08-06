@@ -105,6 +105,7 @@ public class ImporterFromGanttFile extends ImporterBase implements Importer {
         getUiFacade().getTaskTree().getVisibleFields().importData(bufferProject.getVisibleFields());
     }
 
+
     private static class TaskFieldImpl implements TableHeaderUIFacade.Column {
         private final String myID;
         private final int myOrder;
@@ -128,7 +129,7 @@ public class ImporterFromGanttFile extends ImporterBase implements Importer {
         }
         public boolean isVisible() {
             return true;
-        }
+    }
         public String getName() {
             return null;
         }
@@ -158,7 +159,6 @@ public class ImporterFromGanttFile extends ImporterBase implements Importer {
             }
         }
     }
-
     class BufferProject extends GanttProjectImpl implements ParserFactory {
         PrjInfos myProjectInfo = new PrjInfos();
         final DocumentManager myDocumentManager;
@@ -197,7 +197,6 @@ public class ImporterFromGanttFile extends ImporterBase implements Importer {
             return super.getTaskCustomColumnManager();
         }
     }
-
     private BufferProject createBufferProject(
             final IGanttProject targetProject, final UIFacade uiFacade) {
         return new BufferProject(targetProject, uiFacade);

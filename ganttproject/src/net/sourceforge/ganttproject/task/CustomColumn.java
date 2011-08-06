@@ -18,6 +18,7 @@ public class CustomColumn implements CustomPropertyDefinition {
 
     private CustomPropertyClass myPropertyClass;
 
+
     CustomColumn(
             CustomColumnsManager manager, String colName,
             CustomPropertyClass propertyClass, Object colDefaultValue) {
@@ -90,7 +91,11 @@ public class CustomColumn implements CustomPropertyDefinition {
 
     public IStatus setPropertyClass(CustomPropertyClass propertyClass) {
         myPropertyClass = propertyClass;
-        setDefaultValueAsString(getDefaultValueAsString());
+        String defaultValue = getDefaultValueAsString();
+        if (defaultValue == null) {
+            defaultValue = propertyClass.getDefaultValueAsString();
+        }
+        setDefaultValueAsString(defaultValue);
         return Status.OK_STATUS;
     }
 }

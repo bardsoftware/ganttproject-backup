@@ -21,7 +21,6 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
-import javax.swing.ComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -37,6 +36,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -49,10 +49,13 @@ import net.sourceforge.ganttproject.gui.options.model.ChangeValueListener;
 import net.sourceforge.ganttproject.gui.options.model.ColorOption;
 import net.sourceforge.ganttproject.gui.options.model.DateOption;
 import net.sourceforge.ganttproject.gui.options.model.DefaultBooleanOption;
+import net.sourceforge.ganttproject.gui.options.model.DoubleOption;
 import net.sourceforge.ganttproject.gui.options.model.EnumerationOption;
 import net.sourceforge.ganttproject.gui.options.model.GPOption;
 import net.sourceforge.ganttproject.gui.options.model.GPOptionGroup;
+import net.sourceforge.ganttproject.gui.options.model.IntegerOption;
 import net.sourceforge.ganttproject.gui.options.model.StringOption;
+import net.sourceforge.ganttproject.gui.options.model.ValidationException;
 import net.sourceforge.ganttproject.language.GanttLanguage;
 
 import org.jdesktop.swing.JXDatePicker;
@@ -61,6 +64,7 @@ import org.jdesktop.swing.JXDatePicker;
  * @author bard
  */
 public class OptionsPageBuilder {
+    private static final Color INVALID_FIELD_COLOR = Color.RED.brighter();
     I18N myi18n = new I18N();
     private Component myParentComponent;
 
@@ -123,11 +127,18 @@ public class OptionsPageBuilder {
     }
 
     public JComponent createGroupComponent(GPOptionGroup group) {
-        JPanel optionsPanel = new JPanel(new SpringLayout());
+        GPOption[] options = group.getOptions();
+        JComponent optionsPanel = createGroupComponent(group, options);
         if (group.isTitled()) {
             UIUtil.createTitle(optionsPanel, myi18n.getOptionGroupLabel(group));
         }
-        GPOption[] options = group.getOptions();
+        JPanel result = new JPanel(new BorderLayout());
+        result.add(optionsPanel, BorderLayout.NORTH);
+        return result;
+    }
+
+    public JComponent createGroupComponent(GPOptionGroup group, GPOption... options) {
+        JPanel optionsPanel = new JPanel(new SpringLayout());
         for (int i = 0; i < options.length; i++) {
             GPOption nextOption = options[i];
             final Component nextComponent = createOptionComponent(group, nextOption);
@@ -204,7 +215,7 @@ public class OptionsPageBuilder {
         //nextLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 5));
         return nextLabel;
     }
-    private Component createOptionComponent(GPOptionGroup group, GPOption option) {
+    public Component createOptionComponent(GPOptionGroup group, GPOption option) {
         Component result = null;
         if (option instanceof EnumerationOption) {
             result = createEnumerationComponent((EnumerationOption) option, group);
@@ -223,15 +234,46 @@ public class OptionsPageBuilder {
         else if (option instanceof StringOption) {
             result = createStringComponent((StringOption)option);
         }
+        else if (option instanceof IntegerOption) {
+            result = createNumericComponent((IntegerOption)option, new NumericParser<Integer>() {
+                public Integer parse(String text) {
+                    return Integer.valueOf(text);
+                }
+            });
+        }
+        else if (option instanceof DoubleOption) {
+            result = createNumericComponent((DoubleOption)option, new NumericParser<Double>() {
+                public Double parse(String text) {
+                    return Double.valueOf(text);
+                }
+            });
+        }
         if (result == null) {
             result = new JLabel("Unknown option class=" + option.getClass());
         }
         return result;
     }
 
+    private Color getValidFieldColor() {
+        return UIManager.getColor("TextField.background");
+    }
+
+    private static void updateTextField(
+            final JTextField textField, final DocumentListener listener, final ChangeValueEvent event) {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                textField.getDocument().removeDocumentListener(listener);
+                if (!textField.getText().equals(event.getNewValue())) {
+                    textField.setText(String.valueOf(event.getNewValue()));
+                }
+                textField.getDocument().addDocumentListener(listener);
+            }
+        });
+    }
+
     private Component createStringComponent(final StringOption option) {
         final JTextField result = new JTextField(option.getValue());
-        result.getDocument().addDocumentListener(new DocumentListener() {
+        final DocumentListener documentListener = new DocumentListener() {
             public void insertUpdate(DocumentEvent e) {
                 option.setValue(result.getText());
             }
@@ -242,6 +284,12 @@ public class OptionsPageBuilder {
 
             public void changedUpdate(DocumentEvent e) {
                 option.setValue(result.getText());
+            }
+        };
+        result.getDocument().addDocumentListener(documentListener);
+        option.addChangeValueListener(new ChangeValueListener() {
+            public void changeValue(final ChangeValueEvent event) {
+                updateTextField(result, documentListener, event);
             }
         });
         return result;
@@ -273,18 +321,18 @@ public class OptionsPageBuilder {
 
     private boolean isCheckboxOption(GPOptionGroup group, GPOption option) {
         String yesKey = myi18n.getCanonicalOptionLabelKey(option)+".yes";
-        if (group.getI18Nkey(yesKey)==null && myi18n.getValue(yesKey)==null) {
+        if ((group==null || group.getI18Nkey(yesKey)==null) && myi18n.getValue(yesKey)==null) {
             return true;
         }
         String noKey = myi18n.getCanonicalOptionLabelKey(option)+".no";
-        if (group.getI18Nkey(noKey)==null && myi18n.getValue(noKey)==null) {
+        if ((group==null || group.getI18Nkey(noKey)==null) && myi18n.getValue(noKey)==null) {
             return true;
         }
         return false;
     }
 
     private Component createRadioButtonBooleanComponent(GPOptionGroup group, final BooleanOption option) {
-        JRadioButton yesButton = new JRadioButton(new AbstractAction("") {
+        final JRadioButton yesButton = new JRadioButton(new AbstractAction("") {
             public void actionPerformed(ActionEvent e) {
                 if (!option.isChecked()) {
                     option.toggle();
@@ -296,7 +344,7 @@ public class OptionsPageBuilder {
         yesButton.setText(myi18n.getValue(group, myi18n.getCanonicalOptionLabelKey(option)+".yes"));
         yesButton.setSelected(option.isChecked());
 
-        JRadioButton noButton = new JRadioButton(new AbstractAction("") {
+        final JRadioButton noButton = new JRadioButton(new AbstractAction("") {
             public void actionPerformed(ActionEvent e) {
                 if (option.isChecked()) {
                     option.toggle();
@@ -317,12 +365,28 @@ public class OptionsPageBuilder {
         result.add(Box.createHorizontalStrut(5));
         result.add(noButton);
         result.add(Box.createHorizontalGlue());
+        option.addChangeValueListener(new ChangeValueListener() {
+            @Override
+            public void changeValue(ChangeValueEvent event) {
+                if (Boolean.TRUE.equals(event.getNewValue())) {
+                    yesButton.setSelected(true);
+                } else {
+                    noButton.setSelected(true);
+                }
+            }
+        });
         return result;
     }
 
     private JComboBox createEnumerationComponent(EnumerationOption option, GPOptionGroup group) {
-        ComboBoxModel model = new EnumerationOptionComboBoxModel(option, group);
-        JComboBox result = new JComboBox(model);
+        final EnumerationOptionComboBoxModel model = new EnumerationOptionComboBoxModel(option, group);
+        final JComboBox result = new JComboBox(model);
+        option.addChangeValueListener(new ChangeValueListener() {
+            public void changeValue(ChangeValueEvent event) {
+                model.onValueChange();
+                result.setSelectedItem(model.getSelectedItem());
+            }
+        });
         return result;
     }
 
@@ -384,6 +448,54 @@ public class OptionsPageBuilder {
         return result;
     }
 
+    private interface NumericParser<T extends Number> {
+        T parse(String text) throws NumberFormatException;
+    }
+
+    /**
+     * Create JTextField component in options that allows user to input only integer values.
+     * @param option
+     * @return
+     */
+    private <T extends Number> Component createNumericComponent(
+            final GPOption<T> option, final NumericParser<T> parser) {
+        final JTextField result = new JTextField(String.valueOf(option.getValue()));
+        final DocumentListener listener = new DocumentListener() {
+            private void saveValue() {
+                try {
+                    T value = parser.parse(result.getText());
+                    option.setValue(value);
+                    result.setBackground(getValidFieldColor());
+                }
+                /* If value in text filed is not integer change field color */
+                catch (NumberFormatException ex) {
+                    result.setBackground(INVALID_FIELD_COLOR);
+                }
+                catch(ValidationException ex) {
+                    result.setBackground(INVALID_FIELD_COLOR);
+                }
+            }
+            public void insertUpdate(DocumentEvent e) {
+                saveValue();
+            }
+
+            public void removeUpdate(DocumentEvent e) {
+                saveValue();
+            }
+
+            public void changedUpdate(DocumentEvent e) {
+                saveValue();
+            }
+        };
+        result.getDocument().addDocumentListener(listener);
+        option.addChangeValueListener(new ChangeValueListener() {
+            public void changeValue(final ChangeValueEvent event) {
+                updateTextField(result, listener, event);
+            }
+        });
+        return result;
+    }
+
     public static class I18N {
         private String myOptionKeyPrefix = "option.";
         private String myOptionGroupKeyPrefix = "optionGroup.";
@@ -393,7 +505,8 @@ public class OptionsPageBuilder {
         }
 
         protected String getValue(String key) {
-            return GanttLanguage.getInstance().getText(key);
+            String result = GanttLanguage.getInstance().getText(key);
+            return result == null ? key : result;
         }
 
         public String getValue(GPOptionGroup group, String canonicalKey) {

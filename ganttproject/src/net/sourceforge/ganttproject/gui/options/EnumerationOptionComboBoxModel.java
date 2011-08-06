@@ -68,7 +68,7 @@ class EnumerationOptionComboBoxModel extends AbstractListModel implements
             String key = OptionsPageBuilder.I18N.getCanonicalOptionValueLabelKey(ids[i]);
             String value = GanttLanguage.getInstance().getText(key);
 
-            if (value == null) {
+            if (value == null && group != null) {
                 key = group.getI18Nkey(key);
                 if (key != null) {
                     value = GanttLanguage.getInstance().getText(key);
@@ -77,6 +77,13 @@ class EnumerationOptionComboBoxModel extends AbstractListModel implements
             result[i] = value==null ? ids[i] : value;
         }
         return result;
+    }
+
+    public void onValueChange() {
+        Item selectedItem = new Item(myOption.getValue(), myOption.getValue());
+        int index = myValues.indexOf(selectedItem);
+        mySelectedItem = myValues.get(index);
+        fireContentsChanged(this, 0, myValues.size()-1);
     }
 
     private static class Item {
@@ -91,6 +98,20 @@ class EnumerationOptionComboBoxModel extends AbstractListModel implements
 
         public String toString() {
             return myDisplayValue;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (false==obj instanceof Item) {
+                return false;
+            }
+            Item rvalue = (Item) obj;
+            return this.myID.equals(rvalue.myID);
+        }
+
+        @Override
+        public int hashCode() {
+            return myID.hashCode();
         }
     }
 }

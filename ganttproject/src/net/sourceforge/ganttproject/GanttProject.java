@@ -185,9 +185,6 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
     /** Is the application only for viewer. */
     public boolean isOnlyViewer;
 
-    /** The list of all managers installed in this project */
-    private Hashtable<String, Object> managerHash = new Hashtable<String, Object>();
-
     private ResourceActionSet myResourceActions;
 
     private final TaskManager myTaskManager;
@@ -569,6 +566,7 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
                 repaint();
             }
         });
+        this.setModified(false);
     }
 
     private void addMouseListenerToAllContainer(Component[] cont) {
@@ -1084,7 +1082,6 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
         /*
          * this will add new custom columns to the newly created task.
          */
-        getCustomColumnsStorage().processNewTask(task);
 
         AdjustTaskBoundsAlgorithm alg = getTaskManager()
                 .getAlgorithmCollection().getAdjustTaskBoundsAlgorithm();
@@ -1482,12 +1479,10 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
             e.printStackTrace();
             return false;
         }
-        if (mainArgs.log) {
+        if (mainArgs.log && !mainArgs.logFile.isEmpty()) {
             try {
-                String logFileName = mainArgs.logFile.isEmpty()
-                    ? System.getProperty("user.home") + "/.ganttproject.log" : mainArgs.logFile;
-                GPLogger.setLogFile(logFileName);
-                File logFile = new File(logFileName);
+                GPLogger.setLogFile(mainArgs.logFile);
+                File logFile = new File(mainArgs.logFile);
                 System.setErr(new PrintStream(new FileOutputStream(logFile)));
                 System.out.println("Writing log to " + logFile.getAbsolutePath());
             } catch (IOException e) {
@@ -1546,6 +1541,10 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
 
     private ParserFactory myParserFactory;
 
+    private HumanResourceManager myHumanResourceManager;
+
+    private RoleManager myRoleManager;
+
     private static WindowListener ourWindowListener;
 
     /////////////////////////////////////////////////////////
@@ -1587,15 +1586,11 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
     }
 
     public HumanResourceManager getHumanResourceManager() {
-        HumanResourceManager result = (HumanResourceManager) managerHash
-                .get(HUMAN_RESOURCE_MANAGER_ID);
-        if (result == null) {
-            result = new HumanResourceManager(getRoleManager().getDefaultRole());
-            // result.addView(getPeople());
-            managerHash.put(HUMAN_RESOURCE_MANAGER_ID, result);
-            result.addView(this);
+        if (myHumanResourceManager == null) {
+            myHumanResourceManager = new HumanResourceManager(getRoleManager().getDefaultRole(), getResourceCustomPropertyManager());
+            myHumanResourceManager.addView(this);
         }
-        return result;
+        return myHumanResourceManager;
     }
 
     public TaskManager getTaskManager() {
@@ -1603,12 +1598,10 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
     }
 
     public RoleManager getRoleManager() {
-        RoleManager result = (RoleManager) managerHash.get(ROLE_MANAGER_ID);
-        if (result == null) {
-            result = RoleManager.Access.getInstance();
-            managerHash.put(ROLE_MANAGER_ID, result);
+        if (myRoleManager == null) {
+            myRoleManager = RoleManager.Access.getInstance();
         }
-        return result;
+        return myRoleManager;
     }
 
     public Document getDocument() {
@@ -1799,9 +1792,5 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
     }
 
     public void setHiddens() {
-    }
-
-    public CustomPropertyManager getResourceCustomPropertyManager() {
-        return getResourcePanel().getResourceTreeTable();
     }
 }

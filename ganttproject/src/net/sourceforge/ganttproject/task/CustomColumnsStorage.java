@@ -75,8 +75,8 @@ public class CustomColumnsStorage {
      *             exists.
      */
     public void addCustomColumn(CustomColumn col) {
-        assert !getCustomColumnsNames().contains(col.getName()) : 
-        	"column name=" + col.getName() + " already exists:\n" + getCustomColumnsNames();
+        assert !getCustomColumnsNames().contains(col.getName()) :
+            "column name=" + col.getName() + " already exists:\n" + getCustomColumnsNames();
         String id = col.getId();
         while (id == null) {
             id = ID_PREFIX + nextId++;
@@ -260,31 +260,6 @@ public class CustomColumnsStorage {
     public String getNameFromId(String id) {
         CustomColumn column = (CustomColumn) mapIdCustomColum.get(id);
         return column==null ? null : column.getName();
-    }
-
-    /**
-     * Add all stored custom column to the given task. All custom column will
-     * have the default value.
-     *
-     * @param task
-     *            The task to process.
-     */
-    public void processNewTask(Task task) {
-        Iterator<CustomColumn> it = mapIdCustomColum.values().iterator();
-        while (it.hasNext()) {
-            CustomColumn cc = it.next();
-            try {
-                if (cc.getDefaultValue()!=null) {
-                    task.getCustomValues().setValue(
-                            cc.getName(), cc.getDefaultValue());
-                }
-            } catch (CustomColumnsException e) {
-                if (!GPLogger.log(e)) {
-                    e.printStackTrace(System.err);
-                }
-            }
-        }
-
     }
 
     public String toString() {
