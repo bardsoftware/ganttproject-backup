@@ -119,7 +119,7 @@ import net.sourceforge.ganttproject.undo.GPUndoManager;
  * Class that generate the JTree
  */
 public class GanttTree2 extends JPanel implements DragSourceListener,
-        DragGestureListener, DelayObserver, ProjectEventListener, TaskTreeUIFacade {
+        DragGestureListener, DelayObserver, TaskTreeUIFacade {
     /** The root node of the Tree */
     private TaskNode rootNode;
 
@@ -235,14 +235,12 @@ public class GanttTree2 extends JPanel implements DragSourceListener,
             TaskSelectionManager selectionManager, final UIFacade uiFacade) {
 
         super(new BorderLayout());
-        app.getProject().addProjectEventListener(this);
         myUIFacade = uiFacade;
 
         myTaskManager = taskManager;
         myTaskManager.addTaskListener(new TaskListenerAdapter() {
             public void taskModelReset() {
                 clearTree();
-                getTreeTable().reloadColumns();
             }
         });
         mySelectionManager = selectionManager;
@@ -441,9 +439,9 @@ public class GanttTree2 extends JPanel implements DragSourceListener,
     /** Create a popup menu when mouse click */
     private void createPopupMenu(int x, int y) {
         Action[] popupMenuActions = getPopupMenuActions();
-        JScrollBar vbar = treetable.getScrollPane().getVerticalScrollBar();
+        JScrollBar vbar = treetable.getVerticalScrollBar();
         myUIFacade.showPopupMenu(this, popupMenuActions,
-                x - treetable.getScrollPane().getHorizontalScrollBar().getValue()
+                x - treetable.getHorizontalScrollBar().getValue()
                     + (vbar.isVisible() ? vbar.getWidth() : 0),
                 y - vbar.getValue() + treetable.getTable().getTableHeader().getHeight());
     }
@@ -1752,19 +1750,6 @@ public class GanttTree2 extends JPanel implements DragSourceListener,
         return myUIFacade.getUndoManager();
     }
 
-    ///////////////////////////////////////////////////////////////////////////
-    // ProjectEventListener
-    public void projectModified() {
-        // TODO Auto-generated method stub
-    }
-
-    public void projectSaved() {
-        // TODO Auto-generated method stub
-    }
-
-    public void projectClosed() {
-    }
-
     ////////////////////////////////////////////////////////////////////////
     // TaskTreeUIFacade
     public Component getTreeComponent() {
@@ -1819,7 +1804,7 @@ public class GanttTree2 extends JPanel implements DragSourceListener,
 
     public List<Task> getVisibleNodes(VisibleNodesFilter visibleNodesFilter) {
         return visibleNodesFilter.getVisibleNodes(
-                getJTree(), getTreeTable().getScrollPane().getVerticalScrollBar().getValue(), getHeight(),
+                getJTree(), getTreeTable().getVerticalScrollBar().getValue(), getHeight(),
                 getTreeTable().getRowHeight());
     }
 }

@@ -55,7 +55,7 @@ import net.sourceforge.ganttproject.task.dependency.TaskDependencySliceImpl;
 import net.sourceforge.ganttproject.task.hierarchy.TaskHierarchyItem;
 
 /**
- * @author bard
+ * @author bard Date: 31.01.2004
  */
 public class TaskImpl implements Task {
     private int myID;
@@ -147,7 +147,7 @@ public class TaskImpl implements Task {
         bExpand = true;
         myColor = null;
 
-        customValues = new CustomColumnsValues(myManager.getCustomColumnStorage());
+        customValues = new CustomColumnsValues(myManager.getCustomPropertyManager());
     }
 
     protected TaskImpl(TaskImpl copy, boolean isUnplugged) {
@@ -240,7 +240,7 @@ public class TaskImpl implements Task {
     }
 
     public List<Document> getAttachments() {
-        if (getWebLink() != null && !"".equals(getWebLink())) {
+        if (getWebLink()!= null && !"".equals(getWebLink())) {
             return Collections.singletonList((Document)new AbstractURLDocument() {
                 public boolean canRead() {
                     return true;
@@ -578,6 +578,7 @@ public class TaskImpl implements Task {
                 GanttCalendar oldEnd = (GanttCalendar) (myEndChange==null ? TaskImpl.this.getEnd() : myEndChange.myOldValue);
                 myManager.fireTaskScheduleChanged(TaskImpl.this, oldStart, oldEnd);
             }
+
         }
 
         public GanttCalendar getThird() {
@@ -630,9 +631,9 @@ public class TaskImpl implements Task {
         }
 
         public void setStart(final GanttCalendar start) {
-            assert start != null;
+            assert start!=null;
             GanttCalendar currentStart = getStart();
-            if (currentStart != null && start.equals(currentStart)) {
+            if (currentStart!=null && start.equals(currentStart)) {
                 return;
             }
             if (myStartChange == null) {
@@ -828,14 +829,14 @@ public class TaskImpl implements Task {
         start.setTime(closestWorkingStart);
         myStart = start;
 
-        recalculateActivities();
+            recalculateActivities();
     }
 
     private void adjustNestedTasks() {
         assert myManager != null;
         try {
             AlgorithmCollection algorithmCollection = myManager.getAlgorithmCollection();
-            if (algorithmCollection != null) {
+            if (algorithmCollection!=null) {
                 algorithmCollection.getAdjustTaskBoundsAlgorithm().adjustNestedTasks(this);
             }
         } catch (TaskDependencyException e) {
@@ -866,7 +867,7 @@ public class TaskImpl implements Task {
 
     public void shift(TaskLength shift) {
         float unitCount = shift.getLength(myLength.getTimeUnit());
-        if (unitCount != 0) {
+        if (unitCount != 0f) {
             Task resultTask = shift(unitCount);
             GanttCalendar oldStart = myStart;
             GanttCalendar oldEnd = myEnd;
@@ -899,11 +900,11 @@ public class TaskImpl implements Task {
     }
 
     public void setDuration(TaskLength length) {
-        assert length.getLength() > 0;
+        assert length.getLength()>0;
 
         myLength = length;
-        myEnd = null;
-        recalculateActivities();
+        myEnd=null;
+            recalculateActivities();
     }
 
     private Date shiftDate(Date input, TaskLength duration) {
@@ -955,7 +956,7 @@ public class TaskImpl implements Task {
 
     public void setCompletionPercentage(int percentage) {
         if (percentage != myCompletionPercentage) {
-            myCompletionPercentage = percentage;
+        myCompletionPercentage = percentage;
             EventSender progressEventSender = new ProgressEventSender();
             progressEventSender.enable();
             progressEventSender.fireEvent();

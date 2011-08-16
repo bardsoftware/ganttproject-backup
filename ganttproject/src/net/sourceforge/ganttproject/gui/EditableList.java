@@ -85,7 +85,7 @@ public abstract class EditableList<T>  {
         return myTableAndActions;
     }
     private void initComponent() {
-        if (myTableAndActions == null) {
+        if (myTableAndActions==null) {
             JNTable jnTable = new JNTable(myTableModel);
             resourcesTable = jnTable.getTable();
             resourcesTable.setTableHeader(null);
@@ -93,7 +93,7 @@ public abstract class EditableList<T>  {
             resourcesTable.getColumnModel().getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
                 public Component getTableCellRendererComponent(
                         JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                            assert column == 0;
+                    assert column==0;
                     super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                     if (row >= myValues.size()) {
                         return this;
@@ -107,6 +107,7 @@ public abstract class EditableList<T>  {
             resourcesTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(editorField) {
                 private boolean isCanceled;
 
+                @Override
                 public Component getTableCellEditorComponent(
                         JTable table, Object value, boolean isSelected, int row,int column) {
                     isCanceled = false;
@@ -116,29 +117,33 @@ public abstract class EditableList<T>  {
                     }
                     return result;
                 }
-
+                @Override
                 public void cancelCellEditing() {
                     super.cancelCellEditing();
                     isCanceled = true;
                 }
 
+                @Override
                 public Object getCellEditorValue() {
                     if (isCanceled) {
                         return UNDEFINED_VALUE;
                     }
                     return super.getCellEditorValue();
                 }
+
+
             });
             if (!myPossibleValues.isEmpty()) {
                 setupEditor(myPossibleValues, resourcesTable);
             }
             //resourcesTable.setHighlighters(HighlighterFactory.createSimpleStriping());
             resourcesScrollPane = new JScrollPane(jnTable);
-            resourcesScrollPane.setPreferredSize(new Dimension(300, 130));
+            //resourcesScrollPane.setPreferredSize(new Dimension(300, 130));
 
             myTableAndActions = new TableAndActionsImpl();
         }
     }
+
 
     protected Component getTableCellRendererComponent(
             DefaultTableCellRenderer defaultRenderer, T typedValue, boolean isSelected, boolean hasFocus, int row) {
@@ -148,7 +153,7 @@ public abstract class EditableList<T>  {
 
     List<T> getSelectedObjects() {
         int[] selectedRows = resourcesTable.getSelectedRows();
-        if (selectedRows.length == 0) {
+        if (selectedRows.length==0) {
             return Collections.emptyList();
         }
         ArrayList<T> result = new ArrayList<T>();
@@ -164,7 +169,6 @@ public abstract class EditableList<T>  {
         int selIndex = resourcesTable.getSelectedRow();
         return selIndex >= 0 && selIndex < myValues.size() ? myValues.get(selIndex) : null;
     }
-
     class TableModelImpl extends AbstractTableModel {
         public int getColumnCount() {
             return 1;
@@ -193,8 +197,8 @@ public abstract class EditableList<T>  {
         }
 
         public void setValueAt(Object value, int row, int col) {
-            assert col == 0;
-            if (value == null) {
+            assert col==0;
+            if (value==null) {
                 deleteValue(myValues.get(row));
                 myValues.remove(row);
                 fireTableRowsDeleted(row, row);
@@ -241,7 +245,7 @@ public abstract class EditableList<T>  {
         if (ComboItem.class.equals(editValue.getClass())) {
             setItem = (ComboItem) editValue;
         } else {
-            for (int i = 0; i < myComboBox.getModel().getSize(); i++) {
+            for (int i=0; i<myComboBox.getModel().getSize(); i++) {
                 if (((ComboItem)myComboBox.getModel().getElementAt(i)).myText.equals(editValue)) {
                     setItem = (ComboItem)myComboBox.getModel().getElementAt(i);
                     break;
@@ -261,6 +265,8 @@ public abstract class EditableList<T>  {
         TableColumn column = table.getColumnModel().getColumn(0);
         column.setCellEditor(new DefaultCellEditor(myComboBox));
     }
+
+
 
     protected String getStringValue(T t) {
         return String.valueOf(t);
@@ -282,11 +288,12 @@ public abstract class EditableList<T>  {
     protected void applyValues() {
     }
 
+
     class TableAndActionsImpl extends AbstractTableAndActionsComponent<T> {
         TableAndActionsImpl() {
             super(resourcesTable);
         }
-
+        @Override
         protected void onAddEvent() {
             int lastRow = resourcesTable.getRowCount()-1;
             if (myComboBox!=null) {
@@ -296,20 +303,22 @@ public abstract class EditableList<T>  {
                 //resourcesTable.setValueAt("<column name>", lastRow, 0);
             }
 
+            resourcesTable.getSelectionModel().setSelectionInterval(lastRow, lastRow);
             resourcesTable.editCellAt(lastRow, 0);
             resourcesTable.getEditorComponent().requestFocus();
         }
-
+        @Override
         protected void onDeleteEvent() {
             for (int selectedRow : mySelectedRows) {
                 resourcesTable.getModel().setValueAt(null, selectedRow, 0);
             }
         }
-
+        @Override
         protected void onSelectionChanged() {
             mySelectedRows = resourcesTable.getSelectedRows();
             List<T> selectedObjects = getSelectedObjects();
             fireSelectionChanged(selectedObjects);
         }
+
     }
 }

@@ -185,9 +185,6 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
     /** Is the application only for viewer. */
     public boolean isOnlyViewer;
 
-    /** The list of all managers installed in this project */
-    private Hashtable<String, Object> managerHash = new Hashtable<String, Object>();
-
     private ResourceActionSet myResourceActions;
 
     private final TaskManager myTaskManager;
@@ -534,8 +531,8 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
                     options.getHeight());
         }
         System.err.println("8. finalizing...");
-        applyComponentOrientation(GanttLanguage.getInstance()
-                .getComponentOrientation());
+//        applyComponentOrientation(GanttLanguage.getInstance()
+//                .getComponentOrientation());
         myTaskManager.addTaskListener(new TaskModelModificationListener(this));
         if (ourWindowListener != null) {
             addWindowListener(ourWindowListener);
@@ -554,6 +551,7 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
                 repaint();
             }
         });
+        this.setModified(false);
     }
 
     private void addMouseListenerToAllContainer(Component[] cont) {
@@ -976,7 +974,7 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
             } else if (source == miPrjCal) {
                 System.out.println("Project calendar");
             } else if (source == miWebPage) {
-                openWebPage();
+                    openWebPage();
             } else if (source == miAbout) {
                 aboutDialog();
             } else if (source == miSendMailHuman) {
@@ -1036,8 +1034,9 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
         task.setColor(area.getTaskColor());
         tree.addObject(task, node, index);
 
-        // this will add new custom columns to the newly created task.
-        getCustomColumnsStorage().processNewTask(task);
+        /*
+         * this will add new custom columns to the newly created task.
+         */
 
         AdjustTaskBoundsAlgorithm alg = getTaskManager()
                 .getAlgorithmCollection().getAdjustTaskBoundsAlgorithm();
@@ -1206,8 +1205,9 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
 
         // myDelayManager.fireDelayObservation(); // it is done in repaint2
         addMouseListenerToAllContainer(this.getComponents());
-        getTaskManager().projectOpened();
 
+        getTaskManager().projectOpened();
+        fireProjectOpened();
         // As we just have opened a new file it is still unmodified, so mark it as such
         setModified(false);
     }
@@ -1344,6 +1344,7 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
                         setTitle(title + " *");
                     }
                 }
+
             }
         } catch (AccessControlException e) {
             // This can happen when running in a sandbox (Java WebStart)
@@ -1433,12 +1434,10 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
             e.printStackTrace();
             return false;
         }
-        if (mainArgs.log) {
+        if (mainArgs.log && !mainArgs.logFile.isEmpty()) {
             try {
-                String logFileName = mainArgs.logFile.isEmpty()
-                    ? System.getProperty("user.home") + "/.ganttproject.log" : mainArgs.logFile;
-                GPLogger.setLogFile(logFileName);
-                File logFile = new File(logFileName);
+                GPLogger.setLogFile(mainArgs.logFile);
+                File logFile = new File(mainArgs.logFile);
                 System.setErr(new PrintStream(new FileOutputStream(logFile)));
                 System.out.println("Writing log to " + logFile.getAbsolutePath());
             } catch (IOException e) {
@@ -1460,6 +1459,8 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
             System.err.println("Main frame created");
             if (mainArgs.file != null && !mainArgs.file.isEmpty()) {
                 ganttFrame.openStartupDocument(mainArgs.file.get(0));
+            } else {
+                ganttFrame.fireProjectOpened();
             }
             ganttFrame.setVisible(true);
             if (System.getProperty("os.name").toLowerCase().startsWith("mac os x")) {
@@ -1496,6 +1497,10 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
     // private GPCalendar myFakeCalendar = new AlwaysWorkingTimeCalendarImpl();
 
     private ParserFactory myParserFactory;
+
+    private HumanResourceManager myHumanResourceManager;
+
+    private RoleManager myRoleManager;
 
     private static WindowListener ourWindowListener;
 
@@ -1538,15 +1543,11 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
     }
 
     public HumanResourceManager getHumanResourceManager() {
-        HumanResourceManager result = (HumanResourceManager) managerHash
-                .get(HUMAN_RESOURCE_MANAGER_ID);
-        if (result == null) {
-            result = new HumanResourceManager(getRoleManager().getDefaultRole());
-            // result.addView(getPeople());
-            managerHash.put(HUMAN_RESOURCE_MANAGER_ID, result);
-            result.addView(this);
+        if (myHumanResourceManager == null) {
+            myHumanResourceManager = new HumanResourceManager(getRoleManager().getDefaultRole(), getResourceCustomPropertyManager());
+            myHumanResourceManager.addView(this);
         }
-        return result;
+        return myHumanResourceManager;
     }
 
     public TaskManager getTaskManager() {
@@ -1554,12 +1555,10 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
     }
 
     public RoleManager getRoleManager() {
-        RoleManager result = (RoleManager) managerHash.get(ROLE_MANAGER_ID);
-        if (result == null) {
-            result = RoleManager.Access.getInstance();
-            managerHash.put(ROLE_MANAGER_ID, result);
+        if (myRoleManager == null) {
+            myRoleManager = RoleManager.Access.getInstance();
         }
-        return result;
+        return myRoleManager;
     }
 
     public Document getDocument() {
@@ -1750,9 +1749,5 @@ public class GanttProject extends GanttProjectBase implements ActionListener,
     }
 
     public void setHiddens() {
-    }
-
-    public CustomPropertyManager getResourceCustomPropertyManager() {
-        return getResourcePanel().getResourceTreeTable();
     }
 }

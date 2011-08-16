@@ -20,7 +20,11 @@ package net.sourceforge.ganttproject.gui;
 
 import java.awt.Component;
 import java.awt.Frame;
+import java.util.Collection;
+
 import javax.swing.Action;
+
+import net.sourceforge.ganttproject.action.GPAction;
 import net.sourceforge.ganttproject.chart.Chart;
 import net.sourceforge.ganttproject.chart.GanttChart;
 import net.sourceforge.ganttproject.gui.options.model.GPOptionGroup;
@@ -56,6 +60,8 @@ public interface UIFacade {
     Choice showConfirmationDialog(String message, String title);
 
     void showPopupMenu(Component invoker, Action[] actions, int x, int y);
+
+    void showPopupMenu(Component invoker, Collection<Action> actions, int x, int y);
 
     void showOptionDialog(int messageType, String message, Action[] actions);
 
@@ -109,7 +115,6 @@ public interface UIFacade {
     ResourceTreeUIFacade getResourceTree();
 
     TaskSelectionManager getTaskSelectionManager();
-
     TaskSelectionContext getTaskSelectionContext();
 
     GPOptionGroup getOptions();

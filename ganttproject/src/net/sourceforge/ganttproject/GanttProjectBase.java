@@ -24,6 +24,7 @@ import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.swing.Action;
@@ -98,6 +99,10 @@ abstract class GanttProjectBase extends JFrame implements IGanttProject, UIFacad
     private final GPUndoManager myUndoManager;
     private final CustomColumnsManager myTaskCustomColumnManager;
     private final CustomColumnsStorage myTaskCustomColumnStorage;
+
+    private final CustomColumnsManager myResourceCustomPropertyManager =
+        new CustomColumnsManager(new CustomColumnsStorage());
+
     private final RssFeedChecker myRssChecker;
 
     protected GanttProjectBase() {
@@ -105,7 +110,7 @@ abstract class GanttProjectBase extends JFrame implements IGanttProject, UIFacad
         statusBar = new GanttStatusBar(this);
         myTabPane = new GanttTabbedPane();
         myViewManager = new ViewManagerImpl(myTabPane);
-        addProjectEventListener(myViewManager);
+        addProjectEventListener(myViewManager.getProjectEventListener());
         myTimeUnitStack = new GPTimeUnitStack(getLanguage());
         NotificationManagerImpl notificationManager = new NotificationManagerImpl(getTabs().getAnimationHost());
         myUIFacade =new UIFacadeImpl(this, statusBar, notificationManager, getProject(), this);
@@ -162,6 +167,13 @@ abstract class GanttProjectBase extends JFrame implements IGanttProject, UIFacad
             modifiedStateChangeListener.projectClosed();
         }
     }
+
+    protected void fireProjectOpened() {
+        for (ProjectEventListener modifiedStateChangeListener : myModifiedStateChangeListeners) {
+            modifiedStateChangeListener.projectOpened();
+        }
+    }
+
 
     //////////////////////////////////////////////////////////////////
     // UIFacade
@@ -234,7 +246,13 @@ abstract class GanttProjectBase extends JFrame implements IGanttProject, UIFacad
         return myUIFacade.getNotificationManager();
     }
 
+    @Override
     public void showPopupMenu(Component invoker, Action[] actions, int x, int y) {
+        myUIFacade.showPopupMenu(invoker, actions, x, y);
+    }
+
+    @Override
+    public void showPopupMenu(Component invoker, Collection<Action> actions, int x, int y) {
         myUIFacade.showPopupMenu(invoker, actions, x, y);
     }
 
@@ -264,10 +282,11 @@ abstract class GanttProjectBase extends JFrame implements IGanttProject, UIFacad
 //        return visibleChart;
     }
 
-    private class ViewManagerImpl implements GPViewManager, ProjectEventListener {
-        private GanttTabbedPane myTabs;
-        private List<GPView> myViews = new ArrayList<GPView>();
+    private class ViewManagerImpl implements GPViewManager {
+        private final GanttTabbedPane myTabs;
+        private final List<GPView> myViews = new ArrayList<GPView>();
         private GPViewImpl mySelectedView;
+
         ViewManagerImpl(GanttTabbedPane tabs) {
             myTabs = tabs;
             myTabs.addChangeListener(new ChangeListener() {
@@ -305,19 +324,15 @@ abstract class GanttProjectBase extends JFrame implements IGanttProject, UIFacad
             return myPasteAction;
         }
 
-        ////////////////////////////////////////////
-        //ProjectEventListener
-        public void projectModified() {
-        }
-
-        public void projectSaved() {
-        }
-
-        public void projectClosed() {
-            for (int i=0; i<myViews.size(); i++) {
-                GPViewImpl nextView = (GPViewImpl) myViews.get(i);
-                nextView.reset();
-            }
+        ProjectEventListener getProjectEventListener() {
+            return new ProjectEventListener.Stub() {
+                public void projectClosed() {
+                    for (int i=0; i<myViews.size(); i++) {
+                        GPViewImpl nextView = (GPViewImpl) myViews.get(i);
+                        nextView.reset();
+                    }
+                }
+            };
         }
 
         private void updateActions() {
@@ -470,6 +485,10 @@ abstract class GanttProjectBase extends JFrame implements IGanttProject, UIFacad
 
     public CustomColumnsManager getTaskCustomColumnManager() {
         return myTaskCustomColumnManager;
+    }
+
+    public CustomPropertyManager getResourceCustomPropertyManager() {
+        return myResourceCustomPropertyManager;
     }
 
     public CustomColumnsStorage getCustomColumnsStorage() {

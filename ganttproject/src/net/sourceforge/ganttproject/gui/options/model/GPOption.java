@@ -6,7 +6,10 @@ package net.sourceforge.ganttproject.gui.options.model;
 /**
  * @author bard
  */
-public interface GPOption {
+public interface GPOption<T> {
+    T getValue();
+
+    void setValue(T value);
     String getID();
 
     void lock();
@@ -20,4 +23,6 @@ public interface GPOption {
     void loadPersistentValue(String value);
 
     boolean isChanged();
+
+    void addChangeValueListener(ChangeValueListener listener);
 }

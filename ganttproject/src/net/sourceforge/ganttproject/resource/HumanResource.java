@@ -1,30 +1,14 @@
 /*
-GanttProject is an opensource project management tool.
-Copyright (C) 2003-2011 GanttProject Team
+ * HumanResource.java
+ *
+ * Created on 27.05.2003
+ */
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
 package net.sourceforge.ganttproject.resource;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.swing.DefaultListModel;
 
@@ -35,6 +19,8 @@ import net.sourceforge.ganttproject.CustomPropertyManager;
 import net.sourceforge.ganttproject.calendar.GanttDaysOff;
 import net.sourceforge.ganttproject.language.GanttLanguage;
 import net.sourceforge.ganttproject.roles.Role;
+import net.sourceforge.ganttproject.task.CustomColumnsException;
+import net.sourceforge.ganttproject.task.CustomColumnsValues;
 import net.sourceforge.ganttproject.task.ResourceAssignment;
 import net.sourceforge.ganttproject.task.Task;
 
@@ -65,11 +51,7 @@ public class HumanResource implements CustomPropertyHolder {
 
     private final List<ResourceAssignment> myAssignments = new ArrayList<ResourceAssignment>();
 
-    /**
-     * contains all the custom property values of a resource. the key is the
-     * property name and the value is the property value
-     */
-    private final Map<String, Object> customFields;
+    private final CustomColumnsValues myCustomProperties;
 
     private final HumanResourceManager myManager;
 
@@ -81,18 +63,8 @@ public class HumanResource implements CustomPropertyHolder {
     HumanResource(String name, int id, HumanResourceManager manager) {
         this.id = id;
         this.name = name;
-        customFields = new HashMap<String, Object>();
         myManager = manager;
-    }
-
-    void initCustomProperties() {
-        List<CustomPropertyDefinition> defs = myManager
-                .getCustomPropertyManager().getDefinitions();
-        for (int i = 0; i < defs.size(); i++) {
-            CustomPropertyDefinition nextDefinition = defs.get(i);
-            customFields.put(nextDefinition.getName(), nextDefinition
-                    .getDefaultValue());
-        }
+        myCustomProperties = new CustomColumnsValues(myManager.getCustomPropertyManager());
     }
 
     private HumanResource(HumanResource copy) {
@@ -109,8 +81,8 @@ public class HumanResource implements CustomPropertyHolder {
         for (int i = 0; i < copyDaysOff.getSize(); i++) {
             myDaysOffList.addElement(copyDaysOff.get(i));
         }
-        customFields = new HashMap<String, Object>(copy.customFields);
         areEventsEnabled = true;
+        myCustomProperties = (CustomColumnsValues) copy.myCustomProperties.clone();
     }
 
     /**
@@ -206,27 +178,24 @@ public class HumanResource implements CustomPropertyHolder {
         return myDaysOffList;
     }
 
-    public Object getCustomField(String title) {
-        return customFields.get(title);
+    public Object getCustomField(String propertyName) {
+        return myCustomProperties.getValue(propertyName);
     }
 
-    public void setCustomField(String title, Object val) {
-        this.customFields.put(title, val);
+    public void setCustomField(String propertyName, Object value) {
+        try {
+            myCustomProperties.setValue(propertyName, value);
+        } catch (CustomColumnsException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
-    public void removeCustomField(String title) {
-        this.customFields.remove(title);
+    public void removeCustomField(String propertyName) {
+        myCustomProperties.removeCustomColumn(propertyName);
     }
 
-    public ResourceAssignment createAssignment(
-            ResourceAssignment assignmentToTask) {
-//        for (int i = 0; i < myAssignments.size(); i++) {
-//            if (myAssignments.get(i).getTask().equals(
-//                    assignmentToTask.getTask())) {
-//                throw new IllegalStateException(
-//                        "An attempt to assign resource to the same task twice");
-//            }
-//        }
+    public ResourceAssignment createAssignment(ResourceAssignment assignmentToTask) {
         ResourceAssignment result = new ResourceAssignmentImpl(assignmentToTask);
         myAssignments.add(result);
         resetLoads();
@@ -255,18 +224,7 @@ public class HumanResource implements CustomPropertyHolder {
     }
 
     public List<CustomProperty> getCustomProperties() {
-        List<CustomProperty> result = new ArrayList<CustomProperty>(
-                customFields.size());
-        for (Iterator<Entry<String, Object>> entries = customFields.entrySet()
-                .iterator(); entries.hasNext();) {
-            Map.Entry<String, Object> nextEntry = entries.next();
-            String nextName = nextEntry.getKey();
-            Object nextValue = nextEntry.getValue();
-            CustomPropertyDefinition nextDefinition = myManager
-                    .getCustomPropertyDefinition(nextName);
-            result.add(new CustomPropertyImpl(nextDefinition, nextValue));
-        }
-        return result;
+        return myCustomProperties.getCustomProperties();
     }
 
     public CustomProperty addCustomProperty(

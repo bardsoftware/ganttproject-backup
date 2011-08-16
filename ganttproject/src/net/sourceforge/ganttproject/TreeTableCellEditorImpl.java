@@ -24,12 +24,14 @@ import java.awt.event.FocusEvent;
 import java.util.EventObject;
 
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.event.CellEditorListener;
 import javax.swing.table.TableCellEditor;
 import javax.swing.text.JTextComponent;
 
 class TreeTableCellEditorImpl  implements TableCellEditor {
     private TableCellEditor myProxiedEditor;
+    private Runnable myFocusCommand;
 
     TreeTableCellEditorImpl(TableCellEditor proxiedEditor){
         myProxiedEditor = proxiedEditor;
@@ -52,6 +54,13 @@ class TreeTableCellEditorImpl  implements TableCellEditor {
 
             });
         }
+        myFocusCommand = new Runnable() {
+            @Override
+            public void run() {
+                result.requestFocus();
+                //field.selectAll();
+            }
+        };
         return result;
     }
 
@@ -78,8 +87,13 @@ class TreeTableCellEditorImpl  implements TableCellEditor {
     public void addCellEditorListener(CellEditorListener arg0) {
         myProxiedEditor.addCellEditorListener(arg0);
     }
-
     public void removeCellEditorListener(CellEditorListener arg0) {
         myProxiedEditor.removeCellEditorListener(arg0);
+    }
+
+    public void requestFocus() {
+        if (myFocusCommand != null) {
+            SwingUtilities.invokeLater(myFocusCommand);
+        }
     }
 }

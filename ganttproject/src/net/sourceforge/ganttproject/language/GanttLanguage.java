@@ -16,11 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+
 package net.sourceforge.ganttproject.language;
 
 import java.awt.ComponentOrientation;
 import java.text.DateFormat;
 import java.text.FieldPosition;
+import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -147,9 +149,10 @@ public class GanttLanguage {
 
         List<Locale> result1 = new ArrayList<Locale>(result);
         Collections.sort(result1, new Comparator<Locale>() {
+            @Override
             public int compare(Locale o1, Locale o2) {
                 return (o1.getDisplayLanguage(Locale.US) + o1.getDisplayCountry(Locale.US)).compareTo(
-                    o2.getDisplayLanguage(Locale.US) + o2.getDisplayCountry(Locale.US));
+                    o2.getDisplayLanguage(Locale.US)+o2.getDisplayCountry(Locale.US));
             }
         });
         return result1;
@@ -267,5 +270,10 @@ public class GanttLanguage {
 
     public Calendar newCalendar() {
         return (Calendar) Calendar.getInstance(currentLocale).clone();
+    }
+
+    public String formatText(String key, Object... values) {
+        String message = getText(key);
+        return message == null ? null : MessageFormat.format(message, values);
     }
 }

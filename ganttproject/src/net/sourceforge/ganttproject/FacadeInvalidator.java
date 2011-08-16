@@ -15,14 +15,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
+ */
 package net.sourceforge.ganttproject;
 
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 
-class FacadeInvalidator implements TreeModelListener, ProjectEventListener {
+class FacadeInvalidator extends ProjectEventListener.Stub implements TreeModelListener {
     boolean isValid;
 
     public FacadeInvalidator(TreeModel treeModel) {
@@ -52,14 +52,6 @@ class FacadeInvalidator implements TreeModelListener, ProjectEventListener {
 
     public void treeStructureChanged(TreeModelEvent e) {
         isValid = false;
-    }
-
-    public void projectModified() {
-        // TODO Auto-generated method stub
-    }
-
-    public void projectSaved() {
-        // TODO Auto-generated method stub
     }
 
     public void projectClosed() {

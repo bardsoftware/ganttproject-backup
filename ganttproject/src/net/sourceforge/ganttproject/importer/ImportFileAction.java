@@ -36,8 +36,6 @@ public class ImportFileAction extends GPAction {
 
     public ImportFileAction(UIFacade uiFacade, GanttProject project) {
         super(null, "16");
-        /*putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_I,
-                MENU_MASK));*/
         myUIFacade = uiFacade;
         myProject = project;
     }
