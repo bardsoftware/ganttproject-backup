@@ -1,6 +1,6 @@
 /*
 GanttProject is an opensource project management tool.
-Copyright (C) 2011 GanttProject team
+Copyright (C) 2011 GanttProject Team
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -37,7 +37,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JTable;
@@ -63,7 +62,6 @@ import net.sourceforge.ganttproject.gui.zoom.ZoomListener;
 import net.sourceforge.ganttproject.resource.HumanResource;
 import net.sourceforge.ganttproject.task.Task;
 import net.sourceforge.ganttproject.task.TaskLength;
-import net.sourceforge.ganttproject.task.TaskManager;
 import net.sourceforge.ganttproject.task.TaskSelectionManager;
 import net.sourceforge.ganttproject.time.TimeUnit;
 
@@ -147,7 +145,6 @@ public class AbstractChartImplementation implements TimelineChart, ZoomListener 
         myChartComponent.repaint();
     }
 
-
     public void paintChart(Graphics g) {
         getChartModel().paint(g);
     }
@@ -190,7 +187,8 @@ public class AbstractChartImplementation implements TimelineChart, ZoomListener 
                 Graphics2D g = getGraphics(d);
                 g.setBackground(Color.WHITE);
                 g.clearRect(0, 0, d.getTreeWidth(), d.getLogoHeight());
-                g.drawImage(logo, 0, 0, null);
+                // Hack: by adding 35, the left part of the logo becomes visible, otherwise it gets chopped off
+                g.drawImage(logo, 35, 0, null);
             }
 
             @Override
@@ -205,16 +203,13 @@ public class AbstractChartImplementation implements TimelineChart, ZoomListener 
 
             @Override
             public void acceptChart(ChartDimensions d, ChartModel model) {
-                myRenderedImage = new RenderedChartImage(
-                        model,
-                        myTreeImage,
-                        d.getChartWidth(),
-                        d.getChartHeight());
+                myRenderedImage = new RenderedChartImage(model, myTreeImage, d.getChartWidth(), d.getChartHeight()
+                        + d.getLogoHeight(), d.getLogoHeight());
             }
 
             private Graphics2D getGraphics(ChartDimensions d) {
                 if (myGraphics == null) {
-                    myTreeImage  = new BufferedImage(d.getTreeWidth(), d.getChartHeight(), BufferedImage.TYPE_INT_RGB);
+                    myTreeImage  = new BufferedImage(d.getTreeWidth(), d.getChartHeight() + d.getLogoHeight(), BufferedImage.TYPE_INT_RGB);
                     myGraphics = myTreeImage.createGraphics();
                 }
                 return myGraphics;
@@ -281,17 +276,9 @@ public class AbstractChartImplementation implements TimelineChart, ZoomListener 
         return myChartComponent.getName();
     }
 
-    public void setTaskManager(TaskManager taskManager) {
-        throw new UnsupportedOperationException();
-    }
-
     @Override
     public void reset() {
         myChartComponent.reset();
-    }
-
-    public Icon getIcon() {
-        return null;
     }
 
     @Override
