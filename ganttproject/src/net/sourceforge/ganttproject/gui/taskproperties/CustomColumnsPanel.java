@@ -3,7 +3,7 @@ Copyright 2003-2012 Dmitry Barashev, GanttProject Team
 
 This file is part of GanttProject, an opensource project management tool.
 
-GanttProject is free software: you can redistribute it and/or modify 
+GanttProject is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -35,6 +35,7 @@ import net.sourceforge.ganttproject.ShowHideColumnsDialog;
 import net.sourceforge.ganttproject.action.GPAction;
 import net.sourceforge.ganttproject.gui.TableHeaderUIFacade;
 import net.sourceforge.ganttproject.gui.UIFacade;
+import net.sourceforge.ganttproject.gui.UIUtil;
 import net.sourceforge.ganttproject.language.GanttLanguage;
 
 /**
@@ -65,11 +66,11 @@ public class CustomColumnsPanel {
         myTableHeaderFacade = tableHeaderFacade;
     }
 
-    public JComponent geComponent() {
+    public JComponent getComponent() {
         model = new CustomColumnTableModel();
         table = new JTable(model);
 
-        CommonPanel.setupTableUI(table);
+        UIUtil.setupTableUI(table);
         JPanel buttonPanel = new JPanel(new BorderLayout());
         buttonPanel.add(new JButton(new GPAction("columns.manage.label") {
             @Override

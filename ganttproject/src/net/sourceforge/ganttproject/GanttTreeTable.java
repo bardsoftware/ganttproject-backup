@@ -22,6 +22,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.SwingUtilities;
 import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -156,54 +157,14 @@ public class GanttTreeTable extends GPTreeTableBase {
         cellEditor.requestFocus();
     }
 
-
-    /*
-    public TableHeaderUIFacade getVisibleFields() {
-        return myVisibleFields;
-    }
-
-    private class VisibleFieldsImpl implements TableHeaderUIFacade {
-        public void add(String name, int order, int width) {
-            DisplayedColumn newColumn = new DisplayedColumn(name);
-            newColumn.setOrder(order);
-            if (width>=0) {
-                newColumn.setWidth(width);
+    @Override
+    protected void onProjectCreated() {
+        super.onProjectCreated();
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                getUiFacade().getGanttChart().reset();
             }
-            newColumn.setDisplayed(true);
-            DisplayedColumnsList clone = (DisplayedColumnsList) getDisplayColumns().clone();
-            clone.add(newColumn);
-            setDisplayedColumns(clone);
-        }
-
-        public void clear() {
-            setDisplayedColumns(new DisplayedColumnsList());
-        }
-
-        public Column getField(int index) {
-            return (Column) getDisplayColumns().get(index);
-        }
-
-
-        public int getSize() {
-            return getDisplayColumns().size();
-        }
-        public void importData(TableHeaderUIFacade source) {
-            clear();
-            DisplayedColumnsList clone = (DisplayedColumnsList) getDisplayColumns().clone();
-            clone.clear();
-            for (int i=0; i<source.getSize(); i++) {
-                Column nextField = source.getField(i);
-                DisplayedColumn newColumn = new DisplayedColumn(nextField.getName());
-                newColumn.setID(nextField.getID());
-                newColumn.setOrder(nextField.getOrder());
-                if (nextField.getWidth()>=0) {
-                    newColumn.setWidth(nextField.getWidth());
-                }
-                newColumn.setDisplayed(true);
-                clone.add(newColumn);
-            }
-            setDisplayedColumns(clone);
-        }
+        });
     }
-    */
 }

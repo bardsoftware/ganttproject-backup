@@ -31,6 +31,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -238,14 +239,17 @@ class UIFacadeImpl extends ProgressProvider implements UIFacade {
             }
             @Override
             public void show() {
-                DialogAligner.center(dlg, myMainFrame);
+                center(Centering.WINDOW);
                 dlg.setVisible(true);
             }
             @Override
             public void layout() {
                 dlg.pack();
             }
-
+            @Override
+            public void center(Centering centering) {
+                DialogAligner.center(dlg, myMainFrame, centering);
+            }
         };
         dlg.setTitle(title);
         final Commiter commiter = new Commiter();
@@ -363,24 +367,25 @@ class UIFacadeImpl extends ProgressProvider implements UIFacade {
     }
 
     private void showErrorNotification(String message) {
-        getNotificationManager().addNotification(
+        getNotificationManager().addNotifications(
             NotificationChannel.ERROR,
-            new NotificationItem(
-                i18n("error.channel.itemTitle"),
-                GanttLanguage.getInstance().formatText("error.channel.itemBody", message),
-                new HyperlinkListener() {
-                    @Override
-                    public void hyperlinkUpdate(HyperlinkEvent e) {
-                        if (e.getEventType() != EventType.ACTIVATED) {
-                            return;
+            Collections.singletonList(
+                new NotificationItem(
+                    i18n("error.channel.itemTitle"),
+                    GanttLanguage.getInstance().formatText("error.channel.itemBody", message),
+                    new HyperlinkListener() {
+                        @Override
+                        public void hyperlinkUpdate(HyperlinkEvent e) {
+                            if (e.getEventType() != EventType.ACTIVATED) {
+                                return;
+                            }
+                            if ("localhost".equals(e.getURL().getHost()) && "/log".equals(e.getURL().getPath())) {
+                                onViewLog();
+                            } else {
+                                NotificationManager.DEFAULT_HYPERLINK_LISTENER.hyperlinkUpdate(e);
+                            }
                         }
-                        if ("localhost".equals(e.getURL().getHost()) && "/log".equals(e.getURL().getPath())) {
-                            onViewLog();
-                        } else {
-                            NotificationManager.DEFAULT_HYPERLINK_LISTENER.hyperlinkUpdate(e);
-                        }
-                    }
-                }));
+                    })));
     }
 
     protected void onViewLog() {
@@ -392,7 +397,6 @@ class UIFacadeImpl extends ProgressProvider implements UIFacade {
     }
 
     void resetErrorLog() {
-        myStatusBar.setErrorNotifier(null);
     }
 
     @Override

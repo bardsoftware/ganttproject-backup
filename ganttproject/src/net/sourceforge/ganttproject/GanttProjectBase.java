@@ -29,6 +29,7 @@ import java.util.List;
 import javax.swing.Action;
 import javax.swing.JFrame;
 import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 
 import net.sourceforge.ganttproject.calendar.GPCalendar;
@@ -95,8 +96,6 @@ abstract class GanttProjectBase extends JFrame implements IGanttProject, UIFacad
     private final GanttTabbedPane myTabPane;
     private final JToolBar myToolBar = new JToolBar();
     private final GPUndoManager myUndoManager;
-    private final CustomColumnsManager myTaskCustomColumnManager;
-    //private final CustomColumnsStorage myTaskCustomColumnStorage;
 
     private final CustomColumnsManager myResourceCustomPropertyManager = new CustomColumnsManager();
 
@@ -116,7 +115,12 @@ abstract class GanttProjectBase extends JFrame implements IGanttProject, UIFacad
         myViewManager = new ViewManagerImpl(getProject(), myTabPane);
 
         myTimeUnitStack = new GPTimeUnitStack();
-        NotificationManagerImpl notificationManager = new NotificationManagerImpl(myContentPaneBuilder.getAnimationHost());
+        NotificationManagerImpl notificationManager = new NotificationManagerImpl(myContentPaneBuilder.getAnimationHost(), new Runnable() {
+            @Override
+            public void run() {
+                getRssFeedChecker().run();
+            }
+        });
         myUIFacade =new UIFacadeImpl(this, statusBar, notificationManager, getProject(), this);
         GPLogger.setUIFacade(myUIFacade);
         myDocumentManager = new DocumentCreator(this, getUIFacade(), null) {
@@ -138,7 +142,6 @@ abstract class GanttProjectBase extends JFrame implements IGanttProject, UIFacad
             }
         };
         myProjectUIFacade = new ProjectUIFacadeImpl(myUIFacade, myDocumentManager, myUndoManager);
-        myTaskCustomColumnManager = new CustomColumnsManager();
         myRssChecker = new RssFeedChecker((GPTimeUnitStack) getTimeUnitStack(), myUIFacade);
 
         mySearchUi = new SearchUiImpl(getProject(), getUIFacade());
@@ -173,7 +176,12 @@ abstract class GanttProjectBase extends JFrame implements IGanttProject, UIFacad
             modifiedStateChangeListener.projectCreated();
         }
         // A new project just got created, so it is not yet modified
-        setModified(false);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                setModified(false);
+            }
+        });
     }
 
     protected void fireProjectClosed() {
@@ -325,7 +333,7 @@ abstract class GanttProjectBase extends JFrame implements IGanttProject, UIFacad
     }
 
     protected void createContentPane() {
-        myContentPaneBuilder.build(getContentPane(), getLayeredPane());
+        myContentPaneBuilder.build(getContentPane());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -354,8 +362,8 @@ abstract class GanttProjectBase extends JFrame implements IGanttProject, UIFacad
     }
 
     @Override
-    public CustomColumnsManager getTaskCustomColumnManager() {
-        return myTaskCustomColumnManager;
+    public CustomPropertyManager getTaskCustomColumnManager() {
+        return getTaskManager().getCustomPropertyManager();
     }
 
     @Override

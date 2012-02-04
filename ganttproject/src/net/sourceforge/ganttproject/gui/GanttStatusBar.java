@@ -19,11 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 package net.sourceforge.ganttproject.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 
 import javax.swing.BorderFactory;
@@ -36,10 +32,8 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 
 import net.sourceforge.ganttproject.GPLogger;
-import net.sourceforge.ganttproject.GanttProject;
 import net.sourceforge.ganttproject.action.CancelAction;
 import net.sourceforge.ganttproject.font.Fonts;
-import net.sourceforge.ganttproject.language.GanttLanguage;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
@@ -48,48 +42,17 @@ import org.eclipse.core.runtime.IProgressMonitor;
  *
  * @author athomas
  */
-public class GanttStatusBar extends JPanel implements Runnable {
-    protected MessagePanel message0;
-
-    /** Panel containing first message */
-    protected MessagePanel message1;
-
-    /** Panel containing second Message */
-    protected MessagePanel message2;
-
-    private static final int NO_MESSAGE = 1;
-
-    private static final int MESSAGE_1 = 0;
-
-    private static final int MESSAGE_2 = 1;
-
-    int mode = NO_MESSAGE;
-
+public class GanttStatusBar extends JPanel {
     boolean bRunning = false;
 
     private JFrame myMainFrame;
-
-    private Runnable myErrorNotifier;
-
-    private JPanel myErrorNotificationPanel;
 
     private static IProgressMonitor ourMonitor;
 
     public GanttStatusBar(JFrame mainFrame) {
         super(new BorderLayout());
         myMainFrame = mainFrame;
-        message0 = new MessagePanel(215, false);
-        message1 = new MessagePanel(400, true);
-        message2 = new MessagePanel(250, true);
-        myErrorNotificationPanel = new JPanel();
-
-        add(myErrorNotificationPanel, BorderLayout.WEST);
-        add(message1, BorderLayout.CENTER);
-        add(message2, BorderLayout.EAST);
-
-        message0.setText("GanttProject.biz (" + GanttProject.version + ")");
-
-        setFirstText(GanttLanguage.getInstance().getText("welcome"), 5000);
+        add(new JPanel(), BorderLayout.CENTER);
     }
 
     public IProgressMonitor createProgressMonitor() {
@@ -100,11 +63,9 @@ public class GanttStatusBar extends JPanel implements Runnable {
     }
 
     public void setFirstText(String text) {
-        message1.setText(text);
     }
 
     public void setSecondText(String text) {
-        message2.setText(text);
     }
 
     /**
@@ -115,15 +76,6 @@ public class GanttStatusBar extends JPanel implements Runnable {
      * @param milliseconds amount of milliseconds to show the text
      */
     public void setFirstText(String text, int milliseconds) {
-        if (!isVisible()) {
-            return;
-        }
-        message1.setText(text, milliseconds);
-        mode = MESSAGE_1;
-        if (!bRunning) {
-            bRunning = true;
-            new Thread(this).start();
-        }
     }
 
     /**
@@ -134,123 +86,6 @@ public class GanttStatusBar extends JPanel implements Runnable {
      * @param milliseconds amount of milliseconds to show the text
      */
     public void setSecondText(String text, int milliseconds) {
-        if (!isVisible()) {
-            return;
-        }
-        message2.setText(text, milliseconds);
-        mode = MESSAGE_2;
-        if (!bRunning) {
-            bRunning = true;
-            new Thread(this).start();
-        }
-    }
-
-    /** @return the preferred size of this component. */
-    @Override
-    public Dimension getPreferredSize() {
-        return new Dimension(getWidth(), 24);
-    }
-
-    @Override
-    public void run() {
-        try {
-            switch (mode) {
-            case MESSAGE_1:
-                Thread.sleep(message1.getTimer());
-                message1.hideText();
-                message1.clear();
-                break;
-            case MESSAGE_2:
-                Thread.sleep(message2.getTimer());
-                message2.hideText();
-                message2.clear();
-                break;
-            }
-            mode = NO_MESSAGE;
-        } catch (InterruptedException e) {
-            if (!GPLogger.log(e)) {
-                e.printStackTrace(System.err);
-            }
-        }
-        bRunning = false;
-    }
-
-    /** Class to display a message */
-    private class MessagePanel extends JPanel {
-        private final JLabel message;
-
-        private Color textColor = Color.BLACK;
-
-        private int timer = 0;
-
-        public MessagePanel(int size, boolean separator) {
-
-            super(new FlowLayout());
-            message = new JLabel() {
-                @Override
-                public void paint(Graphics g) {
-                    Graphics2D g2 = (Graphics2D) g;
-                    g2.setColor(textColor);
-                    g2.drawString(getText(), 0, 12);
-                }
-            };
-            if (size != -1) {
-                message.setPreferredSize(new Dimension(size, 16));
-                message.setMaximumSize(new Dimension(size, 16));
-                message.setMaximumSize(new Dimension(size, 16));
-            }
-            if (separator) {
-                add(new JLabel("|"));
-            }
-            add(message);
-        }
-
-        /** set a new text to the message. */
-        public void setText(String text) {
-            message.setText(text);
-            timer = 0;
-        }
-
-        /** set a new text to the message. */
-        public void setText(String text, int mltimer) {
-            message.setText(text);
-            timer = mltimer;
-        }
-
-        /** clear the panel. */
-        public void clear() {
-            message.setText("");
-        }
-
-        /** Hide the text by decreasing the color. */
-        public void hideText() {
-            /** Number of (20 ms) steps to use for the fading effect */
-            final int step = 50;
-
-            // Get panel background color, and calculate the steps for each
-            // color component to reach this color in the number of steps
-            final Color cPanel = getBackground();
-            float dRed = (float) cPanel.getRed() / (float) step / 255;
-            float dGreen = (float) cPanel.getGreen() / (float) step / 255;
-            float dBlue = (float) cPanel.getBlue() / (float) step / 255;
-
-            for (int i = 0; i < step; i++) {
-                textColor = new Color(dRed * i, dGreen * i, dBlue * i);
-                repaint(0);
-                try {
-                    Thread.sleep(20);
-                } catch (Exception e) {
-                    // Ignore exceptions
-                }
-            }
-            // Reset textColor for next message
-            textColor = Color.BLACK;
-        }
-
-        /** @return the timer. */
-        public int getTimer() {
-            return timer;
-        }
     }
 
     private class ProgressBarDialog extends JDialog {
@@ -409,26 +244,7 @@ public class GanttStatusBar extends JPanel implements Runnable {
         }
     }
 
-    public void setErrorNotifier(Runnable notifier) {
-        if (notifier == null && myErrorNotifier != null) {
-            clearErrorNotification();
-            return;
-        }
-        if (myErrorNotifier == null) {
-            createErrorNotification(notifier);
-        }
-        myErrorNotifier = notifier;
-    }
-
-    private void clearErrorNotification() {
-//        myErrorNotificationPanel.disableNotifier();
-    }
-
-    private void createErrorNotification(Runnable notifier) {
-//        myErrorNotificationPanel.enableNotifier(notifier);
-    }
-
     public void setNotificationManager(NotificationManagerImpl notificationManager) {
-        myErrorNotificationPanel.add(notificationManager.getChannelButtons());
+        add(notificationManager.getChannelButtons(), BorderLayout.EAST);
     }
 }

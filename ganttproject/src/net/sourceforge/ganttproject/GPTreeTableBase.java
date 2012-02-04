@@ -77,6 +77,7 @@ import net.sourceforge.ganttproject.gui.TableHeaderUIFacade;
 import net.sourceforge.ganttproject.gui.TableHeaderUIFacade.Column;
 import net.sourceforge.ganttproject.gui.UIFacade;
 import net.sourceforge.ganttproject.language.GanttLanguage;
+import net.sourceforge.ganttproject.language.GanttLanguage.Event;
 import net.sourceforge.ganttproject.task.CustomColumn;
 import net.sourceforge.ganttproject.task.CustomPropertyEvent;
 
@@ -97,11 +98,31 @@ public abstract class GPTreeTableBase extends JNTreeTable implements CustomPrope
     private final TableHeaderUiFacadeImpl myTableHeaderFacade = new TableHeaderUiFacadeImpl();
     private final CustomPropertyManager myCustomPropertyManager;
     private boolean isInitialized;
+    private GPAction myEditCellAction = new GPAction("tree.edit") {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            JTable t = getTable();
+            TreeTableCellEditorImpl cellEditor = (TreeTableCellEditorImpl) getTable().getCellEditor(
+                    t.getSelectedRow(), t.getSelectedColumn());
+            t.editCellAt(t.getSelectedRow(), t.getSelectedColumn());
+            cellEditor.requestFocus();
+        }
+    };
 
     protected class TableHeaderUiFacadeImpl implements TableHeaderUIFacade {
         private final List<Column> myDefaultColumnStubs = new ArrayList<Column>();
         private final List<ColumnImpl> myColumns = new ArrayList<ColumnImpl>();
 
+        TableHeaderUiFacadeImpl() {
+            GanttLanguage.getInstance().addListener(new GanttLanguage.Listener() {
+                @Override
+                public void languageChanged(Event event) {
+                    for (ColumnImpl column : myColumns) {
+                        column.setName(column.getName());
+                    }
+                }
+            });
+        }
         private List<ColumnImpl> getColumns() {
             return Collections.unmodifiableList(myColumns);
         }
@@ -399,13 +420,17 @@ public abstract class GPTreeTableBase extends JNTreeTable implements CustomPrope
 
             @Override
             public void projectCreated() {
-                getTableHeaderUiFacade().createDefaultColumns(getDefaultColumns());
-                getTableHeaderUiFacade().importData(TableHeaderUIFacade.Immutable.fromList(getDefaultColumns()));
+                onProjectCreated();
             }
         });
     }
 
     protected void onProjectOpened() {
+    }
+
+    protected void onProjectCreated() {
+        getTableHeaderUiFacade().createDefaultColumns(getDefaultColumns());
+        getTableHeaderUiFacade().importData(TableHeaderUIFacade.Immutable.fromList(getDefaultColumns()));
     }
 
     protected void initTreeTable() {
@@ -466,6 +491,7 @@ public abstract class GPTreeTableBase extends JNTreeTable implements CustomPrope
         ActionMap actionMap= getActionMap();
         actionMap.setParent(getTreeTable().getActionMap());
         getTreeTable().setActionMap(actionMap);
+        addActionWithAccelleratorKey(myEditCellAction);
 
         setHighlighters(new HighlighterPipeline(new Highlighter[] {
                 AlternateRowHighlighter.quickSilver,
@@ -578,9 +604,15 @@ public abstract class GPTreeTableBase extends JNTreeTable implements CustomPrope
     }
 
     TableCellEditor createCellEditor(Class<?> columnClass) {
-        return columnClass.equals(GregorianCalendar.class)
+        TableCellEditor editor = columnClass.equals(GregorianCalendar.class)
                 ? newDateCellEditor() : getTreeTable().getDefaultEditor(columnClass);
+        return wrapEditor(editor);
     }
+
+    private static TableCellEditor wrapEditor(TableCellEditor editor) {
+        return new TreeTableCellEditorImpl(editor);
+    }
+
     protected TableCellEditor newDateCellEditor() {
         return new DateCellEditor();
     }
