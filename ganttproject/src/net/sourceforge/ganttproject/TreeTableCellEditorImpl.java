@@ -21,6 +21,7 @@ package net.sourceforge.ganttproject;
 import java.awt.Component;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.MouseEvent;
 import java.util.EventObject;
 
 import javax.swing.JTable;
@@ -30,12 +31,14 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.text.JTextComponent;
 
 class TreeTableCellEditorImpl implements TableCellEditor {
-  private TableCellEditor myProxiedEditor;
+  private final TableCellEditor myProxiedEditor;
   private Runnable myFocusCommand;
+  private final JTable myTable;
 
-  TreeTableCellEditorImpl(TableCellEditor proxiedEditor) {
+  TreeTableCellEditorImpl(TableCellEditor proxiedEditor, JTable table) {
     assert proxiedEditor != null;
     myProxiedEditor = proxiedEditor;
+    myTable = table;
   }
 
   @Override
@@ -54,8 +57,19 @@ class TreeTableCellEditorImpl implements TableCellEditor {
   }
 
   @Override
-  public boolean isCellEditable(EventObject arg0) {
-    return myProxiedEditor.isCellEditable(arg0);
+  public boolean isCellEditable(EventObject event) {
+    if (event instanceof MouseEvent) {
+      MouseEvent mouseEvent = (MouseEvent) event;
+      if (mouseEvent.getClickCount() == 2) {
+        return false;
+      }
+      if (mouseEvent.getClickCount() == 1
+          && myTable.rowAtPoint(mouseEvent.getPoint()) == myTable.getSelectedRow()
+          && myTable.columnAtPoint(mouseEvent.getPoint()) == myTable.getSelectedColumn()) {
+        return myProxiedEditor.isCellEditable(null);
+      }
+    }
+    return myProxiedEditor.isCellEditable(event);
   }
 
   @Override

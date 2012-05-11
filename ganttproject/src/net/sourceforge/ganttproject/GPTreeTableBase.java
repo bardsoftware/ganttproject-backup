@@ -32,6 +32,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,7 +44,9 @@ import java.util.List;
 import java.util.ListIterator;
 
 import javax.swing.Action;
+import javax.swing.ActionMap;
 import javax.swing.DefaultCellEditor;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
@@ -51,7 +54,9 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.JTree;
 import javax.swing.KeyStroke;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -565,7 +570,7 @@ public abstract class GPTreeTableBase extends JXTreeTable implements CustomPrope
 
   private void addNewCustomColumn(CustomColumn customColumn) {
     TableHeaderUIFacade.Column stub = new TableHeaderUIFacade.ColumnStub(customColumn.getId(), customColumn.getName(),
-        true, getTable().getColumnCount(), 100);
+        false, getTable().getColumnCount(), 100);
     getTableHeaderUiFacade().createColumn(getTable().getModel().getColumnCount() - 1, stub);
   }
 
@@ -642,8 +647,8 @@ public abstract class GPTreeTableBase extends JXTreeTable implements CustomPrope
     return editor == null ? null : wrapEditor(editor);
   }
 
-  private static TableCellEditor wrapEditor(TableCellEditor editor) {
-    return new TreeTableCellEditorImpl(editor);
+  private TableCellEditor wrapEditor(TableCellEditor editor) {
+    return new TreeTableCellEditorImpl(editor, getTable());
   }
 
   protected TableCellEditor newDateCellEditor() {
