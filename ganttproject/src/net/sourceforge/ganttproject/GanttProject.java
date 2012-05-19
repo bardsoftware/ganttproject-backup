@@ -599,7 +599,7 @@ public class GanttProject extends GanttProjectBase implements ResourceView, Gant
   @Override
   public void open(Document document) throws IOException, DocumentException {
     document.read();
-    myMRU.add(document);
+    myMRU.add(document, true);
     projectDocument = document;
     setTitle(language.getText("appliTitle") + " [" + document.getFileName() + "]");
     for (Chart chart : PluginManager.getCharts()) {
@@ -825,10 +825,10 @@ public class GanttProject extends GanttProjectBase implements ResourceView, Gant
       System.err.println("Main frame created");
       if (mainArgs.file != null && !mainArgs.file.isEmpty()) {
         ganttFrame.openStartupDocument(mainArgs.file.get(0));
-      } else {
-        ganttFrame.fireProjectCreated();
       }
       ganttFrame.setVisible(true);
+      ganttFrame.fireProjectCreated();
+
       if (System.getProperty("os.name").toLowerCase().startsWith("mac os x")) {
         OSXAdapter.registerMacOSXApplication(ganttFrame);
       }
