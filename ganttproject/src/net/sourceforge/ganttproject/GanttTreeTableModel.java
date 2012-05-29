@@ -290,7 +290,7 @@ GanttLanguage.Listener {
       res = tn.getStart();
       break;
     case 5:
-      res = tn.getEnd().newAdd(Calendar.DATE, -1);
+      res = tn.getEnd().getDisplayValue();
       break;
     case 6:
       res = new Integer(tn.getDuration());
