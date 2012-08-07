@@ -40,11 +40,13 @@ import net.sourceforge.ganttproject.language.GanttLanguage;
 
 /**
  * This class implements a UI component for editing custom properties.
- * 
+ *
  * @author dbarashev (Dmitry Barashev)
  */
 public class CustomColumnsPanel {
   private static GanttLanguage language = GanttLanguage.getInstance();
+  private static final String[] COLUMN_NAMES = new String[] { CustomColumnsPanel.language.getText("name"),
+    CustomColumnsPanel.language.getText("typeClass"), CustomColumnsPanel.language.getText("value") };
 
   private final CustomPropertyManager myCustomPropertyManager;
 
@@ -84,9 +86,6 @@ public class CustomColumnsPanel {
     }), BorderLayout.WEST);
     return CommonPanel.createTableAndActions(table, buttonPanel);
   }
-
-  private static final String[] COLUMN_NAMES = new String[] { CustomColumnsPanel.language.getText("name"),
-      CustomColumnsPanel.language.getText("typeClass"), CustomColumnsPanel.language.getText("value") };
 
   class CustomColumnTableModel extends DefaultTableModel {
     public CustomColumnTableModel() {

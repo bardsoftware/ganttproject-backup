@@ -683,13 +683,6 @@ public class GanttOptions extends SaverBase {
         }
       }
 
-      // old version of the color version
-      if (qName.equals("task-color")) {
-        // Color color = new Color(r, g, b);
-        // getUIConfiguration().setTaskColor(color);
-        setDefaultTaskColor(new Color(r, g, b));
-      }
-
       if (qName.equals("font")) {
         String category = attrs.getValue("category");
         if ("menu".equals(category)) {
@@ -721,11 +714,6 @@ public class GanttOptions extends SaverBase {
         myCdataBuffer.append(ch, start, length);
       }
     }
-  }
-
-  /** @return the default color for tasks. */
-  public Color getDefaultColor() {
-    return getUIConfiguration().getTaskColor();
   }
 
   /** @return the color for resources. */
@@ -915,11 +903,6 @@ public class GanttOptions extends SaverBase {
   /** set a new value for undo number. */
   public void setUndoNumber(int number) {
     undoNumber = number;
-  }
-
-  /** set a new default tasks color. */
-  public void setDefaultTaskColor(Color color) {
-    getUIConfiguration().setTaskColor(color);
   }
 
   /** set a new default resources color. */

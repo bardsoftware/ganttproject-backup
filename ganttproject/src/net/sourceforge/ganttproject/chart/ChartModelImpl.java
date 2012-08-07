@@ -64,7 +64,7 @@ public class ChartModelImpl extends ChartModelBase {
 
     class NewTaskColorOption extends DefaultColorOption implements GP1XOptionConverter {
       private NewTaskColorOption() {
-        super("taskDefaultColor");
+        super("taskDefaultColor", new Color(140, 182, 206));
       }
 
       @Override
@@ -79,19 +79,10 @@ public class ChartModelImpl extends ChartModelBase {
 
       @Override
       public void loadValue(String legacyValue) {
-        lock();
         loadPersistentValue(legacyValue);
         commit();
       }
-
-      @Override
-      public void commit() {
-        super.commit();
-        projectConfig.setTaskColor(getValue());
-      }
-
     }
-    ;
 
     myTaskDefaultColorOption = new NewTaskColorOption();
     myTaskDefaultsOptions = new GPOptionGroup("ganttChartDefaults",
@@ -250,6 +241,10 @@ public class ChartModelImpl extends ChartModelBase {
     result.addAll(Arrays.asList(superGroups));
     result.addAll(Arrays.asList(rendererGroups));
     return result.toArray(new GPOptionGroup[result.size()]);
+  }
+
+  public ColorOption getTaskDefaultColorOption() {
+    return myTaskDefaultColorOption;
   }
 
   public int setBaseline(List<GanttPreviousStateTask> tasks) {

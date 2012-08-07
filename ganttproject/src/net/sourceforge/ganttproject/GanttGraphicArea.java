@@ -89,10 +89,6 @@ public class GanttGraphicArea extends ChartComponentBase implements GanttChart, 
 
   private final GanttTree2 tree;
 
-  public static Color taskDefaultColor = new Color(140, 182, 206);
-
-  private UIConfiguration myUIConfiguration;
-
   private final ChartModelImpl myChartModel;
 
   private final TaskManager myTaskManager;
@@ -171,14 +167,8 @@ public class GanttGraphicArea extends ChartComponentBase implements GanttChart, 
     return myStateDiffOptions;
   }
 
-  /** @return the color of the task */
-  public Color getTaskColor() {
-    return myUIConfiguration.getTaskColor();
-  }
-
-  /** Change the color of the task */
-  public void setProjectLevelTaskColor(Color c) {
-    myUIConfiguration.setProjectLevelTaskColor(c);
+  Color getTaskColor() {
+    return myChartModel.getTaskDefaultColorOption().getValue();
   }
 
   /** @return the preferred size of the panel. */
@@ -312,10 +302,6 @@ public class GanttGraphicArea extends ChartComponentBase implements GanttChart, 
     repaint();
   }
 
-  public void setUIConfiguration(UIConfiguration configuration) {
-    myUIConfiguration = configuration;
-  }
-
   @Override
   public void projectModified() {
     // TODO Auto-generated method stub
@@ -329,7 +315,6 @@ public class GanttGraphicArea extends ChartComponentBase implements GanttChart, 
   @Override
   public void projectClosed() {
     repaint();
-    setProjectLevelTaskColor(null);
     setPreviousStateTasks(null);
   }
 

@@ -40,13 +40,10 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 
 class TaskSaver extends SaverBase {
-  void save(IGanttProject project, TransformerHandler handler, Color defaultColor) throws SAXException, IOException {
+  void save(IGanttProject project, TransformerHandler handler) throws SAXException, IOException {
     AttributesImpl attrs = new AttributesImpl();
-    if (defaultColor != null) {
-      addAttribute("color", ColorConvertion.getColor(defaultColor), attrs);
-      if (project.getTaskManager().isZeroMilestones() != null) {
-        addAttribute("empty-milestones", project.getTaskManager().isZeroMilestones(), attrs);
-      }
+    if (project.getTaskManager().isZeroMilestones() != null) {
+      addAttribute("empty-milestones", project.getTaskManager().isZeroMilestones(), attrs);
     }
     startElement("tasks", attrs, handler);
 

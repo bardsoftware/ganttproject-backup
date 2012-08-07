@@ -421,7 +421,7 @@ public class OptionsPageBuilder {
     return result;
   }
 
-  private Component createColorComponent(final ColorOption option) {
+  public Component createColorComponent(final ColorOption option) {
     final JButton colorButton = new JButton();
     final JPanel label = new JPanel();
     label.setPreferredSize(new Dimension(8, 8));
