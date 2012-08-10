@@ -199,7 +199,10 @@ public abstract class GPTreeTableBase extends JXTreeTable implements CustomPrope
         Column foreign = source.getField(i);
         ColumnImpl mine = findColumnByID(foreign.getID());
         if (mine == null) {
-          mine = createColumn(getModelIndex(foreign), foreign);
+          int modelIndex = getModelIndex(foreign);
+          if (modelIndex >= 0) {
+            mine = createColumn(modelIndex, foreign);
+          }
         } else {
           mine.getStub().setOrder(foreign.getOrder());
           mine.getStub().setVisible(foreign.isVisible());
@@ -235,7 +238,6 @@ public abstract class GPTreeTableBase extends JXTreeTable implements CustomPrope
           return myDefaultColumnStubs.size() + i;
         }
       }
-      assert false : "Column=" + c + " was not defined";
       return -1;
     }
 
