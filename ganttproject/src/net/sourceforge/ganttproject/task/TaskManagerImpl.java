@@ -117,7 +117,7 @@ public class TaskManagerImpl implements TaskManager {
   };
   private final DependencyGraph myDependencyGraph = new DependencyGraph(myHierarchySupplier, new DependencyGraph.Logger() {
     @Override
-    public void log(String title, String message) {
+    public void logDependencyLoop(String title, String message) {
       if (myConfig.getNotificationManager() != null) {
         myConfig.getNotificationManager().addNotifications(NotificationChannel.WARNING,
             ImmutableList.of(new NotificationItem("Dependency loop detected", message, NotificationManager.DEFAULT_HYPERLINK_LISTENER)));
@@ -207,10 +207,13 @@ public class TaskManagerImpl implements TaskManager {
       public void fireDependencyAdded(TaskDependency dep) {
         TaskManagerImpl.this.fireDependencyAdded(dep);
       }
-
       @Override
       public void fireDependencyRemoved(TaskDependency dep) {
         TaskManagerImpl.this.fireDependencyRemoved(dep);
+      }
+      @Override
+      public void fireDependencyChanged(TaskDependency dep) {
+        TaskManagerImpl.this.fireDependencyChanged(dep);
       }
     };
     myDependencyCollection = new TaskDependencyCollectionImpl(containmentFacadeFactory, dispatcher) {
@@ -251,6 +254,7 @@ public class TaskManagerImpl implements TaskManager {
     ChartBoundsAlgorithm alg5 = new ChartBoundsAlgorithm();
     CriticalPathAlgorithm alg6 = new CriticalPathAlgorithmImpl(this, getCalendar());
     myAlgorithmCollection = new AlgorithmCollection(this, alg1, alg2, alg3, alg4, alg5, alg6, myScheduler);
+    addTaskListener(myScheduler.getTaskModelListener());
   }
 
   private CustomPropertyListener getCustomPropertyListener() {
@@ -339,6 +343,8 @@ public class TaskManagerImpl implements TaskManager {
         TimeDuration duration;
         if (myDuration != null) {
           duration = myDuration;
+        } else if (myPrototype != null) {
+          duration = myPrototype.getDuration();
         } else {
           duration = (myEndDate == null) ? createLength(getTimeUnitStack().getDefaultTimeUnit(), 1.0f) : createLength(getTimeUnitStack().getDefaultTimeUnit(), myStartDate, myEndDate);
         }
@@ -552,7 +558,7 @@ public class TaskManagerImpl implements TaskManager {
           currentValue = Integer.valueOf(valueBuffer.toString());
         case 0:
           if (currentValue == null) {
-            throw new DurationParsingException();
+            throw new DurationParsingException("Failed to parse value=" + lengthAsString);
           }
           state = 2;
           valueBuffer.setLength(0);
@@ -685,6 +691,14 @@ public class TaskManagerImpl implements TaskManager {
     }
   }
 
+  private void fireDependencyChanged(TaskDependency dep) {
+    TaskDependencyEvent e = new TaskDependencyEvent(getDependencyCollection(), dep);
+    for (int i = 0; i < myListeners.size(); i++) {
+      TaskListener next = myListeners.get(i);
+      next.dependencyChanged(e);
+    }
+  }
+
   private void fireTaskAdded(Task task) {
     if (areEventsEnabled) {
       TaskHierarchyEvent e = new TaskHierarchyEvent(this, task, null, getTaskHierarchy().getContainer(task));
@@ -773,7 +787,8 @@ public class TaskManagerImpl implements TaskManager {
 
     @Override
     public Task getPreviousSibling(Task nestedTask) {
-      throw new UnsupportedOperationException();
+      int pos = getTaskIndex(nestedTask);
+      return pos == 0 ? null : nestedTask.getSupertask().getNestedTasks()[pos - 1];
     }
 
     @Override
@@ -783,7 +798,11 @@ public class TaskManagerImpl implements TaskManager {
 
     @Override
     public int getTaskIndex(Task nestedTask) {
-      throw new UnsupportedOperationException();
+      Task container = nestedTask.getSupertask();
+      if (container == null) {
+        return 0;
+      }
+      return Arrays.asList(container.getNestedTasks()).indexOf(nestedTask);
     }
 
     @Override
@@ -1032,11 +1051,16 @@ public class TaskManagerImpl implements TaskManager {
     if (!isRegistered(task)) {
       registerTask(task);
     }
+    myDependencyGraph.move(task, getTaskHierarchy().getContainer(task));
     myTaskMap.setDirty();
   }
 
   public void setEventsEnabled(boolean enabled) {
     areEventsEnabled = enabled;
+  }
+
+  boolean areEventsEnabled() {
+    return areEventsEnabled;
   }
 
   @Override
@@ -1110,6 +1134,7 @@ public class TaskManagerImpl implements TaskManager {
     return isZeroMilestones;
   }
 
+  @Override
   public DependencyGraph getDependencyGraph() {
     return myDependencyGraph;
   }

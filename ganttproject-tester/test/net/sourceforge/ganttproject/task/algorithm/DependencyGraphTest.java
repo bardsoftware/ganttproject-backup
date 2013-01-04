@@ -20,6 +20,7 @@ package net.sourceforge.ganttproject.task.algorithm;
 
 import net.sourceforge.ganttproject.task.Task;
 import net.sourceforge.ganttproject.task.dependency.TaskDependency;
+import net.sourceforge.ganttproject.task.dependency.TaskDependencyException;
 import net.sourceforge.ganttproject.test.task.TaskTestCase;
 
 import com.google.common.base.Suppliers;
@@ -103,7 +104,7 @@ public class DependencyGraphTest extends TaskTestCase {
     assertEquals(0, graph.getNode(tasks[2]).getLevel());
   }
 
-  static void move(Task what, Task where, DependencyGraph graph) {
+  public static void move(Task what, Task where, DependencyGraph graph) {
     where.getManager().getTaskHierarchy().move(what, where);
     graph.move(what, where);
   }
@@ -198,7 +199,7 @@ public class DependencyGraphTest extends TaskTestCase {
   public void testRemoveSubtaskRemovesImplicitSubSuperTaskDependencies() {
     Task[] tasks = new Task[] {createTask(), createTask(), createTask()};
     DependencyGraph graph = createGraph(tasks, null);
-    getTaskManager().getTaskHierarchy().move(tasks[2], tasks[2]);
+    getTaskManager().getTaskHierarchy().move(tasks[2], tasks[1]);
     getTaskManager().getTaskHierarchy().move(tasks[1], tasks[0]);
     graph.move(tasks[2], tasks[1]);
     graph.move(tasks[1], tasks[0]);
@@ -231,6 +232,31 @@ public class DependencyGraphTest extends TaskTestCase {
     assertEquals(2, graph.getNode(tasks[1]).getLevel());
     assertEquals(1, graph.getNode(tasks[2]).getLevel());
     assertEquals(0, graph.getNode(tasks[3]).getLevel());
+  }
+
+  public void testTransactionRollback() throws Exception {
+    Task[] tasks = new Task[] {createTask(), createTask()};
+    DependencyGraph graph = createGraph(tasks, null);
+
+    // We start a transaction and create a dependency
+    graph.startTransaction();
+
+    graph.addDependency(createDependency(tasks[0], tasks[1]));
+    assertEquals(2, graph.checkLayerValidity());
+    assertEquals(1, graph.getNode(tasks[0]).getLevel());
+    assertEquals(1, graph.getNode(tasks[0]).getIncoming().size());
+
+    assertEquals(0, graph.getNode(tasks[1]).getLevel());
+    assertEquals(1, graph.getNode(tasks[1]).getOutgoing().size());
+
+    // Now we rollback transaction and expect that its changes are undone
+    graph.rollbackTransaction();
+
+    assertEquals(1, graph.checkLayerValidity());
+    assertEquals(0, graph.getNode(tasks[0]).getLevel());
+    assertEquals(0, graph.getNode(tasks[1]).getLevel());
+    assertTrue(graph.getNode(tasks[0]).getIncoming().isEmpty());
+    assertTrue(graph.getNode(tasks[1]).getOutgoing().isEmpty());
   }
 
   private DependencyGraph createGraph(Task[] tasks, TaskDependency[] deps) {

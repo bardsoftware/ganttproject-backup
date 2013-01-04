@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 
 import net.sourceforge.ganttproject.GPLogger;
 import net.sourceforge.ganttproject.task.Task;
@@ -34,10 +35,12 @@ import net.sourceforge.ganttproject.task.TaskContainmentHierarchyFacade;
 import net.sourceforge.ganttproject.task.dependency.TaskDependency;
 import net.sourceforge.ganttproject.task.dependency.TaskDependency.Hardness;
 import net.sourceforge.ganttproject.task.dependency.TaskDependencyConstraint;
+import net.sourceforge.ganttproject.task.dependency.TaskDependencyException;
 import biz.ganttproject.core.calendar.GPCalendar;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Lists;
@@ -45,6 +48,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Range;
 import com.google.common.collect.Ranges;
+import com.google.common.collect.Sets;
 import com.google.common.collect.TreeMultimap;
 
 /**
@@ -62,8 +66,15 @@ public class DependencyGraph {
   }
 
   public static interface Logger {
-    void log(String title, String message);
+    void logDependencyLoop(String title, String message);
   }
+
+  public static final Logger THROWING_LOGGER = new Logger() {
+    @Override
+    public void logDependencyLoop(String title, String message) {
+      throw new TaskDependencyException(message);
+    }
+  };
   /**
    * Dependency defines a constraint on its target task start and end dates. Constraints
    * are normally either points or semi-open intervals on the date axis.
@@ -268,7 +279,7 @@ public class DependencyGraph {
     private final Node myDst;
 
     private ImplicitInheritedDependency(DependencyEdge explicitIncoming, Node supertaskNode, Node subtaskNode) {
-      assert explicitIncoming.getDst() == supertaskNode;
+      assert isAncestor(explicitIncoming.getDst(), supertaskNode);
       myExplicitDep = explicitIncoming;
       mySrc = explicitIncoming.getSrc();
       myDst = subtaskNode;
@@ -324,71 +335,183 @@ public class DependencyGraph {
     }
   }
 
+  private static class Transaction {
+    private boolean isRunning;
+    private final Set<Node> myTouchedNodes = Sets.newHashSet();
+
+    boolean isRunning() {
+      return isRunning;
+    }
+
+    void touch(Node node) {
+      myTouchedNodes.add(node);
+    }
+
+    void start() {
+      isRunning = true;
+    }
+
+    void rollback() {
+      for (Node node : myTouchedNodes) {
+        node.revertData();
+      }
+      isRunning = false;
+    }
+  }
+
+  private static class NodeData {
+    private int myLevel = 0;
+    private final List<DependencyEdge> myIncoming;
+    private final List<DependencyEdge> myOutgoing;
+    private final Node myNode;
+    private final Transaction myTxn;
+    private final NodeData myBackup;
+
+    NodeData(Node node, Transaction txn) {
+      myNode = node;
+      myTxn = txn;
+      myIncoming = Lists.newArrayList();
+      myOutgoing = Lists.newArrayList();
+      myBackup = null;
+    }
+
+    private NodeData(NodeData backup) {
+      myNode = backup.myNode;
+      myTxn = backup.myTxn;
+      myLevel = backup.myLevel;
+      myIncoming = Lists.newArrayList(backup.myIncoming);
+      myOutgoing = Lists.newArrayList(backup.myOutgoing);
+      myBackup = backup;
+      myTxn.touch(myNode);
+    }
+
+    NodeData revert() {
+      return (myBackup == null) ? this : myBackup;
+    }
+
+    List<DependencyEdge> getIncoming() {
+      return Collections.unmodifiableList(myIncoming);
+    }
+
+    List<DependencyEdge> getOutgoing() {
+      return Collections.unmodifiableList(myOutgoing);
+    }
+
+    int getLevel() {
+      return myLevel;
+    }
+
+    NodeData setLevel(int level) {
+      if (!myTxn.isRunning() || myBackup != null) {
+        myLevel = level;
+        return this;
+      }
+      return new NodeData(this).setLevel(level);
+    }
+
+    NodeData addOutgoing(DependencyEdge dep) {
+      if (!myTxn.isRunning() || myBackup != null) {
+        myOutgoing.add(dep);
+        return this;
+      }
+      return new NodeData(this).addOutgoing(dep);
+    }
+
+    NodeData addIncoming(DependencyEdge dep) {
+      if (!myTxn.isRunning() || myBackup != null) {
+        myIncoming.add(dep);
+        return this;
+      }
+      return new NodeData(this).addIncoming(dep);
+    }
+
+    NodeData removeOutgoing(DependencyEdge edge) {
+      if (!myTxn.isRunning() || myBackup != null) {
+        myOutgoing.remove(edge);
+        return this;
+      }
+      return new NodeData(this).removeOutgoing(edge);
+    }
+
+    NodeData removeIncoming(DependencyEdge edge) {
+      if (!myTxn.isRunning() || myBackup != null) {
+        myIncoming.remove(edge);
+        return this;
+      }
+      return new NodeData(this).removeIncoming(edge);
+    }
+  }
+
   public static class Node {
     private final Task myTask;
-    private int myLevel = 0;
-    private final List<DependencyEdge> myIncoming = Lists.newArrayList();
-    private final List<DependencyEdge> myOutgoing = Lists.newArrayList();
-    Node(Task task) {
+    private NodeData myData;
+
+    Node(Task task, Transaction txn) {
       assert task != null;
       myTask = task;
+      myData = new NodeData(this, txn);
     }
 
-    void addOutgoing(DependencyEdge dep) {
-      myOutgoing.add(dep);
+    public void revertData() {
+      myData = myData.revert();
     }
 
-    void addIncoming(DependencyEdge dep) {
-      myIncoming.add(dep);
-    }
-
-    boolean promoteLayer(Multimap<Integer, Node> layers) {
+    boolean promoteLayer(GraphData data) {
       int maxLevel = -1;
-      for (DependencyEdge edge : myIncoming) {
+      for (DependencyEdge edge : myData.getIncoming()) {
         maxLevel = Math.max(maxLevel, edge.getSrc().getLevel());
       }
-      if (maxLevel + 1 == myLevel) {
+      if (maxLevel + 1 == myData.getLevel()) {
         return false;
       }
-      layers.remove(myLevel, this);
-      myLevel = maxLevel + 1;
-      layers.put(myLevel, this);
+      data.removeFromLevel(myData.getLevel(), this);
+      myData = myData.setLevel(maxLevel + 1);
+      data.addToLevel(myData.getLevel(), this);
       return true;
     }
 
-    boolean demoteLayer(Multimap<Integer, Node> layers) {
+    boolean demoteLayer(GraphData data) {
       int maxLevel = -1;
-      for (DependencyEdge edge : myIncoming) {
+      for (DependencyEdge edge : myData.getIncoming()) {
         maxLevel = Math.max(maxLevel, edge.getSrc().getLevel());
       }
-      if (maxLevel + 1 == myLevel) {
+      if (maxLevel + 1 == myData.getLevel()) {
         return false;
       }
-      assert maxLevel + 1 < myLevel;
-      layers.remove(myLevel, this);
-      myLevel = maxLevel + 1;
-      layers.put(myLevel, this);
+      assert maxLevel + 1 < myData.getLevel();
+      data.removeFromLevel(myData.getLevel(), this);
+      myData = myData.setLevel(maxLevel + 1);
+      data.addToLevel(myData.getLevel(), this);
       return true;
     }
 
     public int getLevel() {
-      return myLevel;
+      return myData.getLevel();
     }
 
     public List<DependencyEdge> getOutgoing() {
-      return myOutgoing;
+      return myData.getOutgoing();
     }
 
     public List<DependencyEdge> getIncoming() {
-      return myIncoming;
+      return myData.getIncoming();
     }
 
+    void addOutgoing(DependencyEdge dep) {
+      myData = myData.addOutgoing(dep);
+    }
+
+    void addIncoming(DependencyEdge dep) {
+      myData = myData.addIncoming(dep);
+    }
+
+
     void removeOutgoing(DependencyEdge edge) {
-      myOutgoing.remove(edge);
+      myData = myData.removeOutgoing(edge);
     }
 
     void removeIncoming(DependencyEdge edge) {
-      myIncoming.remove(edge);
+      myData = myData.removeIncoming(edge);
     }
 
     public Task getTask() {
@@ -401,17 +524,103 @@ public class DependencyGraph {
     }
   }
 
-  private final Multimap<Integer, Node> myLayers = TreeMultimap.<Integer, Node>create(new Comparator<Integer>() {
-    @Override
-    public int compare(Integer o1, Integer o2) {
-      return o1.compareTo(o2);
+  private static class GraphData {
+    private static Multimap<Integer, Node> createEmptyLayers() {
+      return TreeMultimap.<Integer, Node>create(new Comparator<Integer>() {
+        @Override
+        public int compare(Integer o1, Integer o2) {
+          return o1.compareTo(o2);
+        }
+      }, new Comparator<Node>() {
+        @Override
+        public int compare(Node o1, Node o2) {
+          return o1.myTask.getTaskID() - o2.myTask.getTaskID();
+        }
+      });
     }
-  }, new Comparator<Node>() {
-    @Override
-    public int compare(Node o1, Node o2) {
-      return o1.myTask.getTaskID() - o2.myTask.getTaskID();
+    private final Multimap<Integer, Node> myLayers = createEmptyLayers();
+    private final GraphData myBackup;
+    private final Transaction myTxn;
+
+    public GraphData(GraphData backup, Transaction txn) {
+      myBackup = backup;
+      myTxn = txn;
     }
-  });
+
+    public GraphData(Transaction txn) {
+      this(null, txn);
+    }
+
+    GraphData withTransaction() {
+      if (!myTxn.isRunning() || myBackup != null) {
+        return this;
+      }
+      return new GraphData(this, myTxn);
+    }
+
+    void addToLevel(int level, Node node) {
+      myLayers.put(level, node);
+    }
+
+    void removeFromLevel(int level, Node node) {
+      if (!myTxn.isRunning()) {
+        myLayers.remove(level, node);
+      } else {
+        myLayers.put(-level - 1, node);
+      }
+    }
+
+    Collection<Node> getLayer(int num) {
+      Collection<Node> result = myLayers.get(num);
+      if (!myTxn.isRunning() || myBackup == null) {
+        return Collections.unmodifiableCollection(result);
+      }
+      if (myLayers.get(num).size() + myLayers.get(-num - 1).size() == 0) {
+        return Collections.unmodifiableCollection(result);
+      }
+      result = Sets.newLinkedHashSet(myBackup.getLayer(num));
+      result.addAll(myLayers.get(num));
+      result.removeAll(myLayers.get(-num - 1));
+      return result;
+    }
+
+    int checkLayerValidity() {
+      int prev = -1;
+      Multimap<Integer, Node> layers;
+      if (!myTxn.isRunning() || myBackup == null) {
+        layers = myLayers;
+      } else {
+        layers = createEmptyLayers();
+        int maxBackupLayerNum = 0;
+        for (Integer num : myBackup.myLayers.keySet()) {
+          Collection<Node> layer = myBackup.myLayers.get(num);
+          if (myLayers.get(num).size() + myLayers.get(-num - 1).size() > 0) {
+            layer = Sets.newLinkedHashSet(layer);
+            layer.addAll(myLayers.get(num));
+            layer.removeAll(myLayers.get(-num - 1));
+          }
+          if (!layer.isEmpty()) {
+            layers.putAll(num, layer);
+          }
+          maxBackupLayerNum = Math.max(maxBackupLayerNum, num);
+        }
+        for (Integer num : myLayers.keySet()) {
+          if (num > maxBackupLayerNum) {
+            layers.putAll(num, myLayers.get(num));
+          }
+        }
+      }
+      for (Integer num : layers.keySet()) {
+        Preconditions.checkState(num == prev + 1, "It appears that there is a dependency loop. Task layers are:\n%s", myLayers);
+        prev = num;
+      }
+      return layers.keySet().size();
+    }
+
+    GraphData rollback() {
+      return (!myTxn.isRunning() || myBackup == null) ? this : myBackup.rollback();
+    }
+  }
 
   private final Map<Task, Node> myNodeMap = Maps.newHashMap();
 
@@ -419,12 +628,16 @@ public class DependencyGraph {
 
   private final List<Listener> myListeners = Lists.newArrayList();
 
-  private final Logger myLogger;
+  private Logger myLogger;
+
+  private final Transaction myTxn = new Transaction();
+
+  private GraphData myData = new GraphData(myTxn);
 
   public DependencyGraph(Supplier<TaskContainmentHierarchyFacade> taskHierarchy) {
     this(taskHierarchy, new Logger() {
       @Override
-      public void log(String title, String message) {
+      public void logDependencyLoop(String title, String message) {
         GPLogger.log(title + "\n" + message);
       }
     });
@@ -444,8 +657,8 @@ public class DependencyGraph {
   public void addTask(Task t) {
     assert t.getDependencies().toArray().length == 0;
     assert myTaskHierarchy.get().hasNestedTasks(t) == false;
-    Node node = new Node(t);
-    myLayers.put(0, node);
+    Node node = new Node(t, myTxn);
+    myData.withTransaction().addToLevel(0, node);
     myNodeMap.put(t, node);
     fireGraphChanged();
   }
@@ -532,11 +745,11 @@ public class DependencyGraph {
       Node node = queue.poll();
       pastTasks.put(node.getTask(), queuedTasks.remove(node.getTask()));
 
-      if (node.promoteLayer(myLayers)) {
+      if (node.promoteLayer(myData = myData.withTransaction())) {
         for (DependencyEdge outEdge : node.getOutgoing()) {
           if (!queuedTasks.containsKey(outEdge.getDst().getTask())) {
             if (pastTasks.containsKey(outEdge.getDst().getTask())) {
-              myLogger.log("Dependency loop detected", buildLoop(pastTasks, outEdge) + "\n\nLast dependency has been ignored");
+              myLogger.logDependencyLoop("Dependency loop detected", buildLoop(pastTasks, outEdge) + "\n\nLast dependency has been ignored");
               continue;
             }
             queue.add(outEdge.getDst());
@@ -548,10 +761,15 @@ public class DependencyGraph {
   }
 
   private static String buildLoop(Map<Task, DependencyEdge> pastTasks, DependencyEdge closingEdge) {
+    Set<DependencyEdge> visitedEdges = Sets.newHashSet();
     List<String> trace = Lists.newArrayList();
     trace.add(closingEdge.toString());
     for (DependencyEdge prevEdge = pastTasks.get(closingEdge.getSrc().getTask());
         prevEdge != null; prevEdge = pastTasks.get(prevEdge.getSrc().getTask())) {
+      if (visitedEdges.contains(prevEdge)) {
+        break;
+      }
+      visitedEdges.add(prevEdge);
       trace.add(prevEdge.toString());
     }
     Collections.reverse(trace);
@@ -604,7 +822,7 @@ public class DependencyGraph {
     queue.add(edge);
     while (!queue.isEmpty()) {
       edge = queue.pollFirst();
-      if (edge.getDst().demoteLayer(myLayers)) {
+      if (edge.getDst().demoteLayer(myData = myData.withTransaction())) {
         queue.addAll(edge.getDst().getOutgoing());
       }
     }
@@ -674,16 +892,11 @@ public class DependencyGraph {
   }
 
   int checkLayerValidity() {
-    int prev = -1;
-    for (Integer num : myLayers.keySet()) {
-      assert num == prev + 1;
-      prev = num;
-    }
-    return myLayers.keySet().size();
+    return myData.checkLayerValidity();
   }
 
   public Collection<Node> getLayer(int num) {
-    return myLayers.get(num);
+    return myData.getLayer(num);
   }
 
   public void addListener(Listener l) {
@@ -691,13 +904,50 @@ public class DependencyGraph {
   }
 
   private void fireGraphChanged() {
+    if (myTxn.isRunning()) {
+      return;
+    }
     for (Listener l : myListeners) {
       l.onChange();
     }
   }
 
   public void clear() {
-    myLayers.clear();
+    myData = myData.rollback();
+    myData.myLayers.clear();
     myNodeMap.clear();
+  }
+
+  public void startTransaction() {
+    if (myTxn.isRunning()) {
+      return;
+    }
+    myTxn.start();
+  }
+
+  public void rollbackTransaction() {
+    if (!myTxn.isRunning()) {
+      return;
+    }
+    myData = myData.rollback();
+    myTxn.rollback();
+  }
+
+  public void setLogger(Logger logger) {
+    myLogger = logger;
+  }
+
+  public Logger getLogger() {
+    return myLogger;
+  }
+
+  private static boolean isAncestor(Node ancestor, Node descendant) {
+    TaskContainmentHierarchyFacade taskHierarchy = descendant.getTask().getManager().getTaskHierarchy();
+    for (Task parent = descendant.getTask(); parent != null; parent = taskHierarchy.getContainer(parent)) {
+      if (parent == ancestor.getTask()) {
+        return true;
+      }
+    }
+    return false;
   }
 }
