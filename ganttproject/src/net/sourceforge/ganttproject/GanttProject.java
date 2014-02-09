@@ -118,9 +118,6 @@ import com.beust.jcommander.Parameter;
  */
 public class GanttProject extends GanttProjectBase implements ResourceView, GanttLanguage.Listener {
 
-  /** The current version of ganttproject */
-  public static final String version = GPVersion.V2_0_X;
-
   /** The JTree part. */
   private GanttTree2 tree;
 
@@ -473,13 +470,14 @@ public class GanttProject extends GanttProjectBase implements ResourceView, Gant
 
     final ArtefactAction newAction;
     {
+      final GPAction taskNewAction = getTaskTree().getNewAction().withIcon(IconSize.TOOLBAR_SMALL);
+      final GPAction resourceNewAction = getResourceTree().getNewAction().withIcon(IconSize.TOOLBAR_SMALL);
       newAction = new ArtefactNewAction(new ActiveActionProvider() {
         @Override
         public AbstractAction getActiveAction() {
-          return getTabs().getSelectedIndex() == UIFacade.GANTT_INDEX ? getTaskTree().getNewAction().withIcon(
-              IconSize.TOOLBAR_SMALL) : getResourceTree().getNewAction().withIcon(IconSize.TOOLBAR_SMALL);
+          return getTabs().getSelectedIndex() == UIFacade.GANTT_INDEX ? taskNewAction : resourceNewAction;
         }
-      });
+      }, new Action[] {taskNewAction, resourceNewAction});
     }
 
     final ArtefactAction deleteAction;

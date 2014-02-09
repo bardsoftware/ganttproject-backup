@@ -48,6 +48,7 @@ import net.sourceforge.ganttproject.roles.Role;
 import net.sourceforge.ganttproject.task.CustomColumnsValues;
 import net.sourceforge.ganttproject.task.ResourceAssignment;
 import net.sourceforge.ganttproject.task.Task;
+import net.sourceforge.ganttproject.task.TaskProperties;
 import net.sourceforge.ganttproject.task.dependency.TaskDependency;
 import net.sourceforge.ganttproject.util.StringUtils;
 
@@ -123,7 +124,6 @@ public class GanttCSVExport {
       writer.print(def.getName());
     }
     writer.println();
-    writer.println();
   }
 
   private String i18n(String key) {
@@ -184,14 +184,7 @@ public class GanttCSVExport {
             writer.print(coordinator == null ? "" : coordinator.getResource().getName());
             break;
           case PREDECESSORS:
-            writer.print(Joiner.on(';').join(Lists.transform(
-                Arrays.asList(task.getDependenciesAsDependant().toArray()),
-                new Function<TaskDependency, String>() {
-                  @Override
-                  public String apply(TaskDependency input) {
-                    return "" + input.getDependee().getTaskID();
-                  }
-                })));
+            writer.print(TaskProperties.formatPredecessors(task, ";"));
             break;
           case INFO:
           case PRIORITY:
@@ -230,7 +223,6 @@ public class GanttCSVExport {
       CustomPropertyDefinition nextDef = customFieldDefs.get(i);
       writer.print(nextDef.getName());
     }
-    writer.println();
     writer.println();
   }
 

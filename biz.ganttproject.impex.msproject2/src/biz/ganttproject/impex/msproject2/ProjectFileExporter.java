@@ -135,7 +135,6 @@ class ProjectFileExporter {
       if (!h.isRecurring) {
         Date d = h.myDate;
         ProjectCalendarException calendarException = calendar.addCalendarException(d, d);
-        calendarException.addRange(new DateRange(d, d));
       }
     }
   }

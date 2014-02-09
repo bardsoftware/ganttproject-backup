@@ -73,6 +73,8 @@ import net.sourceforge.ganttproject.gui.scrolling.ScrollingManager;
 import net.sourceforge.ganttproject.gui.scrolling.ScrollingManagerImpl;
 import net.sourceforge.ganttproject.gui.zoom.ZoomManager;
 import net.sourceforge.ganttproject.language.GanttLanguage;
+import net.sourceforge.ganttproject.language.GanttLanguage.Event;
+import net.sourceforge.ganttproject.language.GanttLanguage.Listener;
 import net.sourceforge.ganttproject.language.ShortDateFormatOption;
 import net.sourceforge.ganttproject.task.TaskSelectionManager;
 import net.sourceforge.ganttproject.task.TaskView;
@@ -111,6 +113,7 @@ class UIFacadeImpl extends ProgressProvider implements UIFacade {
   private final DialogBuilder myDialogBuilder;
   private final DefaultIntegerOption myFontSizeOption;
   private Integer myLastFontSize = null;
+  private final LanguageOption myLanguageOption;
 
   UIFacadeImpl(JFrame mainFrame, GanttStatusBar statusBar, NotificationManagerImpl notificationManager,
       IGanttProject project, UIFacade fallbackDelegate) {
@@ -131,14 +134,14 @@ class UIFacadeImpl extends ProgressProvider implements UIFacade {
     dateSampleOption.setWritable(false);
     final DefaultBooleanOption dateFormatSwitchOption = new DefaultBooleanOption("ui.dateFormat.switch", true);
 
-    final LanguageOption languageOption = new LanguageOption();
-    languageOption.addChangeValueListener(new ChangeValueListener() {
+    myLanguageOption = new LanguageOption();
+    myLanguageOption.addChangeValueListener(new ChangeValueListener() {
       @Override
       public void changeValue(ChangeValueEvent event) {
         // Language changed...
         if (dateFormatSwitchOption.isChecked()) {
           // ... update default date format option
-          Locale selected = languageOption.getSelectedValue();
+          Locale selected = myLanguageOption.getSelectedValue();
           shortDateFormatOption.setSelectedLocale(selected);
         }
       }
@@ -152,7 +155,7 @@ class UIFacadeImpl extends ProgressProvider implements UIFacade {
         if (dateFormatSwitchOption.isChecked()) {
           customFormat = shortDateFormatOption.getValue();
           // Update to default date format
-          Locale selected = languageOption.getSelectedValue();
+          Locale selected = myLanguageOption.getSelectedValue();
           shortDateFormatOption.setSelectedLocale(selected);
           dateSampleOption.setValue(shortDateFormatOption.formatDate(new Date()));
         } else if (customFormat != null) {
@@ -171,12 +174,12 @@ class UIFacadeImpl extends ProgressProvider implements UIFacade {
     myFontSizeOption = new DefaultIntegerOption("ui.appFontSize");
     myFontSizeOption.setHasUi(false);
 
-    GPOption[] options = new GPOption[] { myLafOption, languageOption, dateFormatSwitchOption, shortDateFormatOption,
+    GPOption[] options = new GPOption[] { myLafOption, myLanguageOption, dateFormatSwitchOption, shortDateFormatOption,
         dateSampleOption, myFontSizeOption };
     myOptions = new GPOptionGroup("ui", options);
     I18N i18n = new OptionsPageBuilder.I18N();
     myOptions.setI18Nkey(i18n.getCanonicalOptionLabelKey(myLafOption), "looknfeel");
-    myOptions.setI18Nkey(i18n.getCanonicalOptionLabelKey(languageOption), "language");
+    myOptions.setI18Nkey(i18n.getCanonicalOptionLabelKey(myLanguageOption), "language");
     myOptions.setTitled(false);
 
     myLogoOption = new DefaultFileOption("ui.logo");
@@ -560,6 +563,13 @@ class UIFacadeImpl extends ProgressProvider implements UIFacade {
   static class LanguageOption extends DefaultEnumerationOption<Locale> implements GP1XOptionConverter {
     public LanguageOption() {
       this("language", GanttLanguage.getInstance().getAvailableLocales().toArray(new Locale[0]));
+      GanttLanguage.getInstance().addListener(new GanttLanguage.Listener() {
+        public void languageChanged(Event event) {
+          Locale selected = getSelectedValue();
+          LanguageOption.this.reloadValues(GanttLanguage.getInstance().getAvailableLocales());
+          setSelectedValue(selected);
+        }
+      });
     }
 
     private LanguageOption(String id, Locale[] locales) {
@@ -568,18 +578,7 @@ class UIFacadeImpl extends ProgressProvider implements UIFacade {
 
     @Override
     protected String objectToString(Locale locale) {
-      String englishName = locale.getDisplayLanguage(Locale.US);
-      String localName = locale.getDisplayLanguage(locale);
-      if ("en".equals(locale.getLanguage()) || "zh".equals(locale.getLanguage())) {
-        if (!locale.getCountry().isEmpty()) {
-          englishName += " - " + locale.getDisplayCountry(Locale.US);
-          localName += " - " + locale.getDisplayCountry(locale);
-        }
-      }
-      if (localName.equals(englishName)) {
-        return englishName;
-      }
-      return englishName + " (" + localName + ")";
+      return GanttLanguage.getInstance().formatLanguageAndCountry(locale);
     }
 
     @Override
@@ -640,6 +639,10 @@ class UIFacadeImpl extends ProgressProvider implements UIFacade {
         applyLocale(l);
       }
     }
+  }
+
+  public DefaultEnumerationOption<Locale> getLanguageOption() {
+    return myLanguageOption;
   }
 
   @Override
