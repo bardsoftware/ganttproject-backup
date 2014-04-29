@@ -24,6 +24,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -34,6 +35,7 @@ import net.sourceforge.ganttproject.PrjInfos;
 import net.sourceforge.ganttproject.gui.UIConfiguration;
 import net.sourceforge.ganttproject.gui.UIFacade;
 import net.sourceforge.ganttproject.parser.AbstractTagHandler;
+import net.sourceforge.ganttproject.parser.FileFormatException;
 import net.sourceforge.ganttproject.parser.GPParser;
 import net.sourceforge.ganttproject.parser.ParsingContext;
 import net.sourceforge.ganttproject.parser.ParsingListener;
@@ -44,6 +46,8 @@ import net.sourceforge.ganttproject.task.TaskManager;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+
+import com.google.common.collect.Lists;
 
 import biz.ganttproject.core.time.GanttCalendar;
 
@@ -75,6 +79,8 @@ public class GanttXMLOpen implements GPParser {
   private UIFacade myUIFacade = null;
 
   private UIConfiguration myUIConfig;
+
+  private TagHandler myTimelineTagHandler = new TimelineTagHandler();
 
   public GanttXMLOpen(PrjInfos info, UIConfiguration uiConfig, TaskManager taskManager, UIFacade uiFacade) {
     this(taskManager);
@@ -208,6 +214,51 @@ public class GanttXMLOpen implements GPParser {
         currentTask.setNotes(getCdata());
       }
     }
+  }
 
+  @Override
+  public TagHandler getTimelineTagHandler() {
+    return myTimelineTagHandler;
+  }
+
+  class TimelineTagHandler extends AbstractTagHandler implements ParsingListener {
+    private final List<Integer> myIds = Lists.newArrayList();
+
+    public TimelineTagHandler() {
+      super("timeline", true);
+    }
+
+    @Override
+    public void parsingStarted() {
+    }
+    @Override
+    public void parsingFinished() {
+      for (Integer id : myIds) {
+        Task t = myTaskManager.getTask(id);
+        if (t != null) {
+          myUIFacade.getCurrentTaskView().getTimelineTasks().add(t);
+        }
+      }
+    }
+    @Override
+    public void startElement(String namespaceURI, String sName, String qName, Attributes attrs)
+        throws FileFormatException {
+      if ("timeline".equals(qName)) {
+        clearCdata();
+      }
+    }
+    @Override
+    public void endElement(String namespaceURI, String sName, String qName) {
+      if ("timeline".equals(qName)) {
+        String[] ids = getCdata().split(",");
+        for (String id : ids) {
+          try {
+            myIds.add(Integer.valueOf(id.trim()));
+          } catch (NumberFormatException e) {
+            GPLogger.logToLogger(e);
+          }
+        }
+      }
+    }
   }
 }

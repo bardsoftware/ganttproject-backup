@@ -37,9 +37,11 @@ import net.sourceforge.ganttproject.parser.FileFormatException;
 import net.sourceforge.ganttproject.parser.GPParser;
 import net.sourceforge.ganttproject.parser.HolidayTagHandler;
 import net.sourceforge.ganttproject.parser.ParserFactory;
+import net.sourceforge.ganttproject.parser.ParsingListener;
 import net.sourceforge.ganttproject.parser.PreviousStateTasksTagHandler;
 import net.sourceforge.ganttproject.parser.ResourceTagHandler;
 import net.sourceforge.ganttproject.parser.RoleTagHandler;
+import net.sourceforge.ganttproject.parser.TagHandler;
 import net.sourceforge.ganttproject.parser.TaskDisplayColumnsTagHandler;
 import net.sourceforge.ganttproject.parser.TaskPropertiesTagHandler;
 import net.sourceforge.ganttproject.parser.TaskTagHandler;
@@ -311,6 +313,8 @@ class ProxyDocument implements Document {
       opener.addParsingListener(customPropHandler);
 
       opener.addTagHandler(opener.getDefaultTagHandler());
+      opener.addTagHandler(opener.getTimelineTagHandler());
+      opener.addParsingListener((ParsingListener)opener.getTimelineTagHandler());
       opener.addTagHandler(resourceHandler);
       opener.addTagHandler(dependencyHandler);
       opener.addTagHandler(allocationHandler);
