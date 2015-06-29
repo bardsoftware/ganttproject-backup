@@ -1,9 +1,5 @@
 GanttProject
 ============
-[![Build Status] (https://travis-ci.org/bardsoftware/ganttproject.svg?branch=master)](https://travis-ci.org/bardsoftware/ganttproject)
+*29 June* This repository has been replaced by repository created by Google Code => GitHub migration tool and was renamed to `ganttproject-backup`. The new repository is named `ganttproject`.
 
-GanttProject is an open-source desktop project scheduling and management tool. It is written in Java/Swing.
-
-This repository is a mirror of the [main Mercurial repository](https://code.google.com/p/ganttproject/source/browse/) on Google Code Hosting. It is almost always as actual as the main one (may be just a few commits behind). We synchronize repositories with [hg-git](http://hg-git.github.io/)
-
-Pull requests are welcome. Please read the [instructions on building the code](https://code.google.com/p/ganttproject/wiki/BuildingGanttProject).
+If you wish to watch, star or fork GanttProject repository, please do it with the new one. This repository is discontinued and will be deleted soon. Our apologizes for these troubles!
